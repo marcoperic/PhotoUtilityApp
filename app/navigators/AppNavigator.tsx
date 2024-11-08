@@ -39,7 +39,9 @@ export type AppStackParamList = {
   Login: undefined 
   Demo: NavigatorScreenParams<DemoTabParamList> 
   // 🔥 Your screens go here
-  // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
+  Disclaimer: undefined
+	Swipe: undefined
+	// IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
 
 /**
@@ -59,31 +61,25 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 const AppStack = observer(function AppStack() {
   
   const {
-    authenticationStore: { isAuthenticated },
+    authenticationStore: { isDisclaimerAccepted },
   } = useStores()
 
   
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, navigationBarColor: colors.background }}
-      initialRouteName={isAuthenticated ? "Welcome" : "Login"} 
+      initialRouteName={isDisclaimerAccepted  ? "Welcome" : "Disclaimer"} 
     >
-      
-      {isAuthenticated ? (
         <>
-          
+          <Stack.Screen name="Disclaimer" component={Screens.DisclaimerScreen} />
           <Stack.Screen name="Welcome" component={Screens.WelcomeScreen} />
-          
           <Stack.Screen name="Demo" component={DemoNavigator} />
         </>
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={Screens.LoginScreen} />
-        </>
-      )}
       
       {/** 🔥 Your screens go here */}
-      {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
+      {/* <Stack.Screen name="Disclaimer" component={Screens.DisclaimerScreen} /> */}
+			<Stack.Screen name="Swipe" component={Screens.SwipeScreen} />
+			{/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>
   )
 })
