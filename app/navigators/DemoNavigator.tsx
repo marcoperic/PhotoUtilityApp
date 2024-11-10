@@ -42,7 +42,8 @@ export function DemoNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerTitle: "Progress",
         tabBarHideOnKeyboard: true,
         tabBarStyle: [$tabBar, { height: bottom + 70 }],
         tabBarActiveTintColor: colors.text,
@@ -52,10 +53,21 @@ export function DemoNavigator() {
       }}
     >
       <Tab.Screen
+        name="SwipeScreen"
+        component={SwipeScreen}
+        options={{
+          tabBarLabel: "Swipe",
+          tabBarIcon: ({ focused }) => (
+            <Icon icon="community" color={focused ? colors.tint : undefined} size={30} />
+          ),
+        }}
+      />
+
+      <Tab.Screen
         name="DemoShowroom"
         component={DemoShowroomScreen}
         options={{
-          tabBarLabel: translate("demoNavigator.componentsTab"),
+          tabBarLabel: "Trash",
           tabBarIcon: ({ focused }) => (
             <Icon icon="components" color={focused ? colors.tint : undefined} size={30} />
           ),
@@ -63,12 +75,12 @@ export function DemoNavigator() {
       />
 
       <Tab.Screen
-        name="SwipeScreen"
-        component={SwipeScreen}
+        name="DemoDebug"
+        component={DemoDebugScreen}
         options={{
-          tabBarLabel: "Swipe",
+          tabBarLabel: "Profile",
           tabBarIcon: ({ focused }) => (
-            <Icon icon="community" color={focused ? colors.tint : undefined} size={30} />
+            <Icon icon="debug" color={focused ? colors.tint : undefined} size={30} />
           ),
         }}
       />

@@ -53,7 +53,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
             onPress={() => 
               {
                 setDisclaimerAccepted()
-                navigation.navigate("Demo" as never)}
+                navigation.navigate("Swipe" as never)}
               }
           />
         </View>
