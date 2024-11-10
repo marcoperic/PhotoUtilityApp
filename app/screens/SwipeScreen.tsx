@@ -15,13 +15,25 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const [loading, setLoading] = useState(true)
   const [photos, setPhotos] = useState<ImageSourcePropType[]>([])
   const swiperRef = useRef<SwiperCardRefType>(null)
+  
+  // Ref to store all photo URIs
+  const allPhotoURIs = useRef<string[]>([])
+  // Ref to keep track of the current index
+  const currentIndex = useRef<number>(0)
+
+  const initialLoadCount = 10; // Increased initial load count
 
   useEffect(() => {
     const loadPhotos = async () => {
       try {
         const loadedPhotos = PhotoLoader.getPhotoURIs()
+        allPhotoURIs.current = loadedPhotos
+        console.log(`Total photos loaded: ${loadedPhotos.length}`)
         if (loadedPhotos.length > 0) {
-          setPhotos(loadedPhotos.map(uri => ({ uri })))
+          const initialPhotos = loadedPhotos.slice(0, initialLoadCount).map(uri => ({ uri }))
+          setPhotos(initialPhotos)
+          currentIndex.current = initialLoadCount
+          console.log(`Initial photos loaded: ${initialPhotos.length}`)
         } else {
           console.warn("No photos loaded.")
         }
@@ -36,17 +48,15 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   }, [])
 
   const renderCard = useCallback(
-    (image: ImageSourcePropType) => {
-      return (
-        <View style={styles.renderCardContainer}>
-          <Image
-            source={image}
-            style={styles.renderCardImage}
-            resizeMode="cover"
-          />
-        </View>
-      );
-    },
+    (image: ImageSourcePropType, index: number) => (
+      <View style={styles.renderCardContainer}>
+        <Image
+          source={image}
+          style={styles.renderCardImage}
+          resizeMode="cover"
+        />
+      </View>
+    ),
     []
   );
 
@@ -89,6 +99,24 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
     );
   }, []);
 
+  const handleSwipe = useCallback(() => {
+    const photosToLoad = 2; // Number of photos to load each time
+    console.log("handleSwipe triggered")
+    if (currentIndex.current < allPhotoURIs.current.length) {
+      const nextPhotos = allPhotoURIs.current.slice(
+        currentIndex.current,
+        currentIndex.current + photosToLoad
+      ).map(uri => ({ uri }))
+
+      console.log(`Loading photos from index ${currentIndex.current} to ${currentIndex.current + photosToLoad}`)
+      setPhotos(prevPhotos => [...prevPhotos, ...nextPhotos])
+      currentIndex.current += photosToLoad
+      console.log(`Current index updated to ${currentIndex.current}`)
+    } else {
+      console.log("No more photos to load")
+    }
+  }, []);
+
   if (loading) {
     return (
       <Screen style={$root} preset="scroll">
@@ -111,6 +139,9 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
             renderCard={renderCard}
             onIndexChange={(index) => {
               console.log('Current Active index', index);
+              if (index % 2 === 0) {
+                handleSwipe()
+              }
             }}
             onSwipeRight={(cardIndex) => {
               console.log('Swiped right on cardIndex', cardIndex);
