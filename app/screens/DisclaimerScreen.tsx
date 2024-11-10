@@ -1,9 +1,10 @@
-import React, { FC, useEffect } from "react"
+import React, { FC, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, TextStyle, View } from "react-native"
+import { ViewStyle, TextStyle, View, Alert } from "react-native"
 import { AppStackScreenProps } from "app/navigators"
 import { Screen, Text, Button } from "app/components"
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import PhotoLoader from "app/utils/PhotoLoader"
 import { useNavigation } from "@react-navigation/native"
 import { useStores } from "app/models"
 
@@ -11,6 +12,8 @@ interface DisclaimerScreenProps extends AppStackScreenProps<"Disclaimer"> {}
 
 export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function DisclaimerScreen() {
   const navigation = useNavigation()
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   const {
     authenticationStore: { generateUniqueId, setDisclaimerAccepted },
@@ -19,6 +22,27 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   useEffect(() => {
     generateUniqueId()
   }, [])
+
+  const handlePhotoLoading = async () => {
+    setLoading(true)
+    const photoLoader = new PhotoLoader()
+    
+    photoLoader.initialize((progress) => {
+      console.log("Progress:", progress)
+      setProgress(progress)
+    }).catch((error) => {
+      console.error('Failed to initialize PhotoLoader:', error)
+      Alert.alert(
+        "Error",
+        "Failed to load photos. Please check your permissions and try again."
+      )
+    }).finally(() => {
+      setLoading(false)
+    })
+
+    // setDisclaimerAccepted()
+    navigation.navigate("Swipe" as never)
+  }
 
   return (
     <Screen style={$root} preset="scroll">
@@ -47,14 +71,11 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
         <View style={$buttonContainer}>
           <Button
             text="Sounds Good!"
-            style={$button}
+            style={[$button, loading && $buttonDisabled]}
             textStyle={$buttonText}
             pressedStyle={$buttonPressed}
-            onPress={() => 
-              {
-                setDisclaimerAccepted()
-                navigation.navigate("Swipe" as never)}
-              }
+            onPress={handlePhotoLoading}
+            disabled={loading}
           />
         </View>
       </View>
@@ -121,4 +142,8 @@ const $buttonText: TextStyle = {
 
 const $buttonPressed: ViewStyle = {
   backgroundColor: "#388E3C",
+}
+
+const $buttonDisabled: ViewStyle = {
+  opacity: 0.7,
 }

@@ -1,27 +1,40 @@
-import React, { FC } from "react"
+import React, { FC, useEffect, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle } from "react-native"
+import { ViewStyle, ActivityIndicator, View } from "react-native"
 import { AppStackScreenProps } from "app/navigators"
 import { Screen, Text } from "app/components"
-import { DemoTabScreenProps } from "app/navigators/DemoNavigator"
-// import { useNavigation } from "@react-navigation/native"
-// import { useStores } from "app/models"
+import { colors } from "../theme"
 
 interface SwipeScreenProps extends AppStackScreenProps<"Swipe"> {}
 
-export const SwipeScreen: FC<DemoTabScreenProps<"SwipeScreen">> = observer(function SwipeScreen() {
-  // Pull in one of our MST stores
-  // const { someStore, anotherStore } = useStores()
+export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen() {
+  const [loading, setLoading] = useState(true)
 
-  // Pull in navigation via hook
-  // const navigation = useNavigation()
   return (
     <Screen style={$root} preset="scroll">
-      <Text text="swipe" />
+      {loading ? (
+        <View style={$loadingContainer}>
+          <ActivityIndicator size="large" color={colors.palette.neutral500} />
+          <Text text="Loading your photos..." style={$loadingText} />
+        </View>
+      ) : (
+        <Text text="Ready to swipe!" />
+      )}
     </Screen>
   )
 })
 
 const $root: ViewStyle = {
   flex: 1,
+}
+
+const $loadingContainer: ViewStyle = {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $loadingText: TextStyle = {
+  marginTop: 10,
+  textAlign: "center",
 }
