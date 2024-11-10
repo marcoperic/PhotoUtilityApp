@@ -63,7 +63,8 @@
     "react-native-screens": "3.31.1",
     "react-native-uuid": "^2.0.2",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "rn-swiper-list": "^2.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

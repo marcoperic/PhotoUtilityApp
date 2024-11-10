@@ -25,23 +25,22 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
 
   const handlePhotoLoading = async () => {
     setLoading(true)
-    const photoLoader = new PhotoLoader()
-    
-    photoLoader.initialize((progress) => {
-      console.log("Progress:", progress)
-      setProgress(progress)
-    }).catch((error) => {
+    try {
+      await PhotoLoader.initialize((progressValue) => {
+        console.log("Progress:", progressValue)
+        setProgress(progressValue)
+      })
+      setDisclaimerAccepted()
+      navigation.navigate("Swipe" as never)
+    } catch (error) {
       console.error('Failed to initialize PhotoLoader:', error)
       Alert.alert(
         "Error",
         "Failed to load photos. Please check your permissions and try again."
       )
-    }).finally(() => {
+    } finally {
       setLoading(false)
-    })
-
-    // setDisclaimerAccepted()
-    navigation.navigate("Swipe" as never)
+    }
   }
 
   return (

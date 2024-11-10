@@ -1,15 +1,27 @@
 import * as MediaLibrary from 'expo-media-library';
 
 class PhotoLoader {
+  private static instance: PhotoLoader;
   private photoURIs: string[];
   private totalPhotos: number;
   private loadedPhotos: number;
   private MAX_IMAGES = -1; // Maximum number of images to load
 
-  constructor() {
+  private constructor() {
     this.photoURIs = [];
     this.totalPhotos = 0;
     this.loadedPhotos = 0;
+  }
+
+  /**
+   * Retrieves the singleton instance of PhotoLoader.
+   * @returns {PhotoLoader} The singleton instance.
+   */
+  static getInstance(): PhotoLoader {
+    if (!PhotoLoader.instance) {
+      PhotoLoader.instance = new PhotoLoader();
+    }
+    return PhotoLoader.instance;
   }
 
   /**
@@ -24,7 +36,7 @@ class PhotoLoader {
    * Loads photos with optional progress updates, up to MAX_IMAGES.
    * @param onProgress - Callback to update loading progress.
    */
-  async loadAllPhotos(onProgress?: (progress: number) => void) {
+  private async loadAllPhotos(onProgress?: (progress: number) => void) {
     const { status } = await MediaLibrary.requestPermissionsAsync();
     if (status !== 'granted') {
       throw new Error('Permission to access media library was denied');
@@ -32,11 +44,20 @@ class PhotoLoader {
 
     let hasMorePhotos = true;
     let endCursor: string | undefined = undefined;
-    while (hasMorePhotos && (this.MAX_IMAGES === -1 || this.loadedPhotos < this.MAX_IMAGES)) {
-      const remaining = this.MAX_IMAGES === -1 ? 8 : this.MAX_IMAGES - this.loadedPhotos;
+    while (
+      hasMorePhotos &&
+      (this.MAX_IMAGES === -1 || this.loadedPhotos < this.MAX_IMAGES)
+    ) {
+      const remaining =
+        this.MAX_IMAGES === -1 ? 8 : this.MAX_IMAGES - this.loadedPhotos;
       const fetchCount = remaining >= 8 ? 8 : remaining;
 
-      const { assets, endCursor: newEndCursor, hasNextPage, totalCount } = await MediaLibrary.getAssetsAsync({
+      const {
+        assets,
+        endCursor: newEndCursor,
+        hasNextPage,
+        totalCount,
+      } = await MediaLibrary.getAssetsAsync({
         mediaType: 'photo',
         after: endCursor,
         first: fetchCount,
@@ -44,7 +65,10 @@ class PhotoLoader {
 
       this.photoURIs = [...this.photoURIs, ...assets.map(asset => asset.uri)];
       this.loadedPhotos += assets.length;
-      this.totalPhotos = this.MAX_IMAGES === -1 ? totalCount : Math.min(totalCount, this.MAX_IMAGES);
+      this.totalPhotos =
+        this.MAX_IMAGES === -1
+          ? totalCount
+          : Math.min(totalCount, this.MAX_IMAGES);
       console.log(`Loaded ${this.loadedPhotos} photos out of ${this.totalPhotos}`);
 
       if (onProgress) {
@@ -52,7 +76,9 @@ class PhotoLoader {
       }
 
       endCursor = newEndCursor;
-      hasMorePhotos = hasNextPage && (this.MAX_IMAGES === -1 || this.loadedPhotos < this.MAX_IMAGES);
+      hasMorePhotos =
+        hasNextPage &&
+        (this.MAX_IMAGES === -1 || this.loadedPhotos < this.MAX_IMAGES);
     }
 
     // Modified log message to handle unlimited case
@@ -79,4 +105,4 @@ class PhotoLoader {
   }
 }
 
-export default PhotoLoader;
+export default PhotoLoader.getInstance();
