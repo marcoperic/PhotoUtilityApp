@@ -8,6 +8,7 @@ import { Swiper, SwiperCardRefType } from 'rn-swiper-list'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AntDesign } from '@expo/vector-icons'
 import PhotoLoader from "../utils/PhotoLoader"
+import { useStores } from "../models/helpers/useStores"
 
 interface SwipeScreenProps extends AppStackScreenProps<"Swipe"> {}
 
@@ -15,19 +16,15 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const [loading, setLoading] = useState(true)
   const [photos, setPhotos] = useState<ImageSourcePropType[]>([])
   const swiperRef = useRef<SwiperCardRefType>(null)
-  
-  // Ref to store all photo URIs
-  const allPhotoURIs = useRef<string[]>([])
-  // Ref to keep track of the current index
   const currentIndex = useRef<number>(0)
-
-  const initialLoadCount = 10; // Increased initial load count
+  const initialLoadCount = 10
+  
+  const { photoStore } = useStores()
 
   useEffect(() => {
     const loadPhotos = async () => {
       try {
-        const loadedPhotos = PhotoLoader.getPhotoURIs()
-        allPhotoURIs.current = loadedPhotos
+        const loadedPhotos = photoStore.allPhotoURIs
         console.log(`Total photos loaded: ${loadedPhotos.length}`)
         if (loadedPhotos.length > 0) {
           const initialPhotos = loadedPhotos.slice(0, initialLoadCount).map(uri => ({ uri }))
@@ -38,7 +35,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
           console.warn("No photos loaded.")
         }
       } catch (error) {
-        console.error('Error accessing PhotoLoader:', error)
+        console.error('Error accessing PhotoStore:', error)
       } finally {
         setLoading(false)
       }
@@ -102,8 +99,8 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const handleSwipe = useCallback(() => {
     const photosToLoad = 2; // Number of photos to load each time
     console.log("handleSwipe triggered")
-    if (currentIndex.current < allPhotoURIs.current.length) {
-      const nextPhotos = allPhotoURIs.current.slice(
+    if (currentIndex.current < photoStore.allPhotoURIs.length) {
+      const nextPhotos = photoStore.allPhotoURIs.slice(
         currentIndex.current,
         currentIndex.current + photosToLoad
       ).map(uri => ({ uri }))
@@ -116,6 +113,14 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
       console.log("No more photos to load")
     }
   }, []);
+
+  const handleSwipeLeft = (cardIndex: number) => {
+    const deletedPhotoUri = photoStore.allPhotoURIs[cardIndex]
+    if (deletedPhotoUri) {
+      photoStore.addDeletedPhoto(deletedPhotoUri)
+      console.log('Marked photo for deletion:', deletedPhotoUri)
+    }
+  }
 
   if (loading) {
     return (
@@ -149,9 +154,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
             onSwipedAll={() => {
               console.log('All cards swiped');
             }}
-            onSwipeLeft={(cardIndex) => {
-              console.log('Swiped left on cardIndex', cardIndex);
-            }}
+            onSwipeLeft={handleSwipeLeft}
             onSwipeTop={(cardIndex) => {
               console.log('Swiped top on cardIndex', cardIndex);
             }}

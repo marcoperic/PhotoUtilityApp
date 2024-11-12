@@ -26,11 +26,18 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   const handlePhotoLoading = async () => {
     setLoading(true)
     try {
+      const {
+        photoStore,
+      } = useStores()
+      
       navigation.navigate("Swipe" as never)
       
       PhotoLoader.initialize((progressValue) => {
         console.log("Progress:", progressValue)
         setProgress(progressValue)
+      }).then(() => {
+        // Store the loaded URIs in PhotoStore
+        photoStore.setPhotoURIs(PhotoLoader.getPhotoURIs())
       }).catch((error) => {
         console.error('Failed to initialize PhotoLoader:', error)
         Alert.alert(
