@@ -19,6 +19,10 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
     authenticationStore: { generateUniqueId, setDisclaimerAccepted },
   } = useStores()
 
+  const {
+    photoStore,
+  } = useStores()
+
   useEffect(() => {
     generateUniqueId()
   }, [])
@@ -26,10 +30,6 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   const handlePhotoLoading = async () => {
     setLoading(true)
     try {
-      const {
-        photoStore,
-      } = useStores()
-      
       navigation.navigate("Swipe" as never)
       
       PhotoLoader.initialize((progressValue) => {
