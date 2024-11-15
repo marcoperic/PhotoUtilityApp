@@ -59,24 +59,25 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
     })
   }
 
-  const animateImageFadeOut = () => {
+  // Modified animateImageFadeOut to accept duration
+  const animateImageFadeOut = (duration: number) => {
     Animated.timing(imageAnimation, {
       toValue: 0,
-      duration: 500,
+      duration: duration, // Use the passed duration
       useNativeDriver: true,
     }).start()
   }
 
   const handleKeep = useCallback(() => {
     setOverlay("keep")
-    animateImageFadeOut()
+    animateImageFadeOut(200) // Keep fade-out duration
     animateOverlay()
   }, [animateOverlay])
 
   const handleRemove = useCallback(() => {
     photoStore.addDeletedPhoto(photoStore.photoURIs[currentIndex])
     setOverlay("remove")
-    animateImageFadeOut()
+    animateImageFadeOut(200) // Remove fade-out duration faster
     animateOverlay()
   }, [animateOverlay, currentIndex, photoStore])
 
@@ -239,4 +240,3 @@ const styles = StyleSheet.create({
 const $root: ViewStyle = {
   flex: 1,
 }
-
