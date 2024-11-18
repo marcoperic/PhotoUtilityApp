@@ -30,6 +30,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   const handlePhotoLoading = async () => {
     setLoading(true)
     try {
+      // setDisclaimerAccepted()
       navigation.navigate("Swipe" as never)
       
       PhotoLoader.initialize((progressValue) => {

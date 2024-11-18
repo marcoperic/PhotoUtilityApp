@@ -76,6 +76,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
 
   const handleRemove = useCallback(() => {
     photoStore.addDeletedPhoto(photoStore.photoURIs[currentIndex])
+    console.log("Marked photo for deletion:", photoStore.photoURIs[currentIndex])
     setOverlay("remove")
     animateImageFadeOut(200) // Remove fade-out duration faster
     animateOverlay()

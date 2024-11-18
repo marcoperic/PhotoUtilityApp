@@ -9,3 +9,4 @@ export * from "./ErrorScreen/ErrorBoundary"
 // export other screens here
 export * from "./DisclaimerScreen"
 export * from "./SwipeScreen"
+export * from "./TrashScreen"
