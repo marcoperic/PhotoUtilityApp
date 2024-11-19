@@ -1,5 +1,6 @@
 import * as MediaLibrary from 'expo-media-library';
 import ImageProcessor from './ImageProcessor';
+import APIClient from './APIClient';
 
 class PhotoLoader {
   private static instance: PhotoLoader;
@@ -7,11 +8,13 @@ class PhotoLoader {
   private totalPhotos: number;
   private loadedPhotos: number;
   private MAX_IMAGES = 200; // Maximum number of images to load
+  private apiClient: APIClient;
 
   private constructor() {
     this.photoURIs = [];
     this.totalPhotos = 0;
     this.loadedPhotos = 0;
+    this.apiClient = new APIClient();
   }
 
   /**
@@ -95,6 +98,7 @@ class PhotoLoader {
 
   /**
    * Preprocesses images and creates a zip archive.
+   * After zipping, uploads the images to the server.
    * @param onProgress - Callback to update processing progress.
    */
   private async preprocessAndZipImages(onProgress?: (progress: number) => void) {
@@ -102,15 +106,15 @@ class PhotoLoader {
       const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs);
       console.log(`Zip created at ${zipUri} with size ${size} bytes`);
 
-      // You can now upload the zipUri to your server or handle it as needed.
-      // For example:
-      // await uploadZipToServer(zipUri);
+      // Upload the zip file
+      const response = await this.apiClient.uploadImages(zipUri);
+      console.log('Images uploaded successfully:', response);
 
       if (onProgress) {
         onProgress(1); // Processing complete
       }
     } catch (error) {
-      console.error('Error during image preprocessing and zipping:', error);
+      console.error('Error during image preprocessing and uploading:', error);
     }
   }
 
