@@ -1,6 +1,7 @@
 import * as MediaLibrary from 'expo-media-library';
 import ImageProcessor from './ImageProcessor';
 import APIClient from './APIClient';
+import { delay } from '../utils/delay'
 
 class PhotoLoader {
   private static instance: PhotoLoader;
@@ -97,24 +98,32 @@ class PhotoLoader {
   }
 
   /**
-   * Preprocesses images and creates a zip archive.
-   * After zipping, uploads the images to the server.
+   * Preprocesses images, creates a zip archive, and uploads it to the server.
+   * Retries uploading until successful.
    * @param onProgress - Callback to update processing progress.
    */
-  private async preprocessAndZipImages(onProgress?: (progress: number) => void) {
+  async preprocessAndZipImages(onProgress?: (progress: number) => void) {
     try {
-      const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs);
-      console.log(`Zip created at ${zipUri} with size ${size} bytes`);
+      const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs)
+      console.log(`Zip created at ${zipUri} with size ${size} bytes`)
 
-      // Upload the zip file
-      const response = await this.apiClient.uploadImages(zipUri);
-      console.log('Images uploaded successfully:', response);
-
-      if (onProgress) {
-        onProgress(1); // Processing complete
+      // Continuously retry uploading the zip until it succeeds
+      let uploadSuccessful = false
+      while (!uploadSuccessful) {
+        try {
+          const response = await this.apiClient.uploadImages(zipUri)
+          console.log('Images uploaded successfully:', response)
+          uploadSuccessful = true
+          if (onProgress) {
+            onProgress(1) // Processing complete
+          }
+        } catch (error) {
+          console.error('Error during image uploading, retrying in 30 seconds...', error)
+          await delay(30000) // Wait 30 seconds before retrying
+        }
       }
     } catch (error) {
-      console.error('Error during image preprocessing and uploading:', error);
+      console.error('Error during image preprocessing and uploading:', error)
     }
   }
 
