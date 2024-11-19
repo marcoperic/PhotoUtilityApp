@@ -4,6 +4,7 @@ import { FlatList, Image, ImageStyle, ScrollView, StyleSheet, View, ViewStyle } 
 import { Screen, Text } from "app/components"
 import { useStores } from "app/models"
 import { colors, spacing } from "app/theme"
+import { AppStackScreenProps } from "app/navigators"
 
 interface TrashScreenProps extends AppStackScreenProps<"Trash"> {}
 
