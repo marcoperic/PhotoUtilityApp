@@ -6,6 +6,7 @@ export const PhotoStoreModel = types
   .props({
     photoURIs: types.array(types.string),
     deletedPhotoURIs: types.array(types.string),
+    imageManifest: types.frozen<Record<string, string>>({}),
   })
   .actions(withSetPropAction)
   .actions((store) => ({
@@ -26,7 +27,10 @@ export const PhotoStoreModel = types
     },
     clearDeletedPhotos() {
       store.deletedPhotoURIs.clear()
-    }
+    },
+    setImageManifest(manifest: Record<string, string>) {
+      store.imageManifest = manifest
+    },
   }))
   .views((store) => ({
     get allPhotoURIs() {

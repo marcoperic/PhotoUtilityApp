@@ -1,4 +1,5 @@
 import * as MediaLibrary from 'expo-media-library';
+import ImageProcessor from './ImageProcessor';
 
 class PhotoLoader {
   private static instance: PhotoLoader;
@@ -26,10 +27,15 @@ class PhotoLoader {
 
   /**
    * Initializes and loads all photos up to MAX_IMAGES.
-   * @param onProgress - Callback to update loading progress.
+   * After loading, it preprocesses the images.
+   * @param onProgress - Callback to update loading and processing progress.
    */
   async initialize(onProgress?: (progress: number) => void) {
     await this.loadAllPhotos(onProgress);
+    console.log(`Loaded ${this.photoURIs.length} photos. loadAllPhotos function finished.`);
+    if (this.photoURIs.length > 0) {
+      await this.preprocessAndZipImages(onProgress);
+    }
   }
 
   /**
@@ -88,7 +94,28 @@ class PhotoLoader {
   }
 
   /**
-   * Gets the loading progress as a value between 0 and 1.
+   * Preprocesses images and creates a zip archive.
+   * @param onProgress - Callback to update processing progress.
+   */
+  private async preprocessAndZipImages(onProgress?: (progress: number) => void) {
+    try {
+      const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs);
+      console.log(`Zip created at ${zipUri} with size ${size} bytes`);
+
+      // You can now upload the zipUri to your server or handle it as needed.
+      // For example:
+      // await uploadZipToServer(zipUri);
+
+      if (onProgress) {
+        onProgress(1); // Processing complete
+      }
+    } catch (error) {
+      console.error('Error during image preprocessing and zipping:', error);
+    }
+  }
+
+  /**
+   * Gets the loading and processing progress as a value between 0 and 1.
    * @returns Progress value.
    */
   private getProgress(): number {
