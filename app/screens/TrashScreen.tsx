@@ -11,12 +11,12 @@ interface TrashScreenProps extends AppStackScreenProps<"Trash"> {}
 export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen() {
   const { photoStore } = useStores()
 
-  const renderItem = ({ item }: { item: string }) => (
+  const renderItem = ({ item }: { item: { uri: string; similarImages: string[] } }) => (
     <View style={styles.rowContainer}>
-      <Image source={{ uri: item }} style={styles.mainImage} />
+      <Image source={{ uri: item.uri }} style={styles.mainImage} />
       <View style={styles.contentContainer}>
         <Text 
-          text={`${4} similar images found`} 
+          text={`${item.similarImages.length} similar images found`} 
           size="xs" 
           style={styles.similarText}
         />
@@ -25,10 +25,10 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
           showsHorizontalScrollIndicator={false} 
           style={styles.similarImagesContainer}
         >
-          {Array.from({ length: 4 }).map((_, index) => (
+          {item.similarImages.map((similarUri, index) => (
             <Image 
               key={index} 
-              source={{ uri: item }} 
+              source={{ uri: similarUri }} 
               style={styles.similarImage} 
             />
           ))}
@@ -39,12 +39,12 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
 
   return (
     <Screen style={styles.root} preset="scroll">
-      {photoStore.deletedPhotoURIs.length === 0 ? (
+      {photoStore.deletedPhotos.length === 0 ? (
         <Text text="No items in Trash." />
       ) : (
         <FlatList
-          data={photoStore.deletedPhotoURIs.slice()}
-          keyExtractor={(uri) => uri}
+          data={photoStore.deletedPhotos.slice()}
+          keyExtractor={(item) => item.uri}
           renderItem={renderItem}
           contentContainerStyle={styles.listContentContainer}
         />
