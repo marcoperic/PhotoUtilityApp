@@ -14,11 +14,26 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
   const renderItem = ({ item }: { item: string }) => (
     <View style={styles.rowContainer}>
       <Image source={{ uri: item }} style={styles.mainImage} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.similarImagesContainer}>
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Image key={index} source={{ uri: item }} style={styles.similarImage} />
-        ))}
-      </ScrollView>
+      <View style={styles.contentContainer}>
+        <Text 
+          text={`${4} similar images found`} 
+          size="xs" 
+          style={styles.similarText}
+        />
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.similarImagesContainer}
+        >
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Image 
+              key={index} 
+              source={{ uri: item }} 
+              style={styles.similarImage} 
+            />
+          ))}
+        </ScrollView>
+      </View>
     </View>
   )
 
@@ -49,21 +64,31 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   rowContainer: {
     flexDirection: "row",
-    alignItems: "center",
     marginBottom: spacing.md,
+    backgroundColor: colors.palette.neutral200,
+    borderRadius: 10,
+    padding: spacing.xs,
   } as ViewStyle,
   mainImage: {
-    width: 100,
-    height: 100,
+    width: 104,
+    height: 104,
     borderRadius: 8,
-    marginRight: spacing.sm,
   } as ImageStyle,
-  similarImagesContainer: {
+  contentContainer: {
     flex: 1,
+    marginLeft: spacing.sm,
+    justifyContent: "center",
+  } as ViewStyle,
+  similarText: {
+    color: colors.textDim,
+    marginBottom: spacing.xs,
+  } as ViewStyle,
+  similarImagesContainer: {
+    flexGrow: 0,
   } as ViewStyle,
   similarImage: {
-    width: 80,
-    height: 80,
+    width: 64,
+    height: 64,
     borderRadius: 6,
     marginRight: spacing.xs,
   } as ImageStyle,

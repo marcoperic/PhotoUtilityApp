@@ -61,7 +61,7 @@ class ImageProcessor {
           // Clean up preprocessed image
           await FileSystem.deleteAsync(preprocessedUri, { idempotent: true });
         } catch (error) {
-          console.error(`Error processing image ${currentIndex + 1}:`, error);
+          console.log(`Error processing image ${currentIndex + 1}:`, error);
         }
       });
       await Promise.all(promises);
