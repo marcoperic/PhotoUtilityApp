@@ -19,6 +19,7 @@ import faiss
 import secrets
 import time
 import json
+import matplotlib.pyplot as plt
 
 app = FastAPI()
 
@@ -31,6 +32,7 @@ model.eval()
 
 # Define transforms
 transform = transforms.Compose([
+    transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
@@ -39,8 +41,8 @@ def extract_features(image):
     image = transform(image).unsqueeze(0).to(device)
     with torch.no_grad():
         features = model(image)
-        features = features.squeeze()  # Keep on GPU
-    return features.cpu().numpy().flatten()  # Only move to CPU at the final step
+        features = features.squeeze()  # Keep dimensions
+    return features.cpu().numpy()  # Move to CPU and convert to numpy at the end
 
 # In-memory storage for uploaded images
 image_storage: Dict[str, Dict[str, bytes]] = {}
@@ -169,8 +171,7 @@ async def upload_images(file: UploadFile = File(...), user_id: str = Form(...)):
             
             image_features = np.array(image_features).astype('float32')
             dimension = image_features.shape[1]
-            faiss_index = faiss.IndexFlatL2(dimension)
-            faiss_index.add(image_features)  # Vectors are stored at indices 0, 1, 2, ...
+            faiss_index = create_faiss_index(dimension, image_features)
             image_paths = valid_image_paths_local  # Store original URIs in the same order as vectors
             
             build_time = time.time() - start_time
@@ -218,34 +219,43 @@ async def search_similar_images(file: UploadFile = File(...), k: int = 5):
         if faiss_index is None:
             return JSONResponse(
                 status_code=500,
-                content={"message": "FAISS index is not initialized. Please upload images first."}
+                content={"message": "FAISS index is not initialized"}
             )
         
-        # Save the uploaded image to a temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
             image_path = os.path.join(temp_dir, file.filename)
             with open(image_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
-            print(f"Saved query image to: {image_path}")
-
-            # Open and preprocess the image
+            
             image = Image.open(image_path).convert('RGB')
             features = extract_features(image)
-            print(f"Extracted features from query image: {features.shape}")
-
-        # Convert features to the correct format
-        query_vector = np.array(features).astype('float32').reshape(1, -1)
-
-        # Perform FAISS search
-        distances, indices = faiss_index.search(query_vector, k)
-        print(f"Search results - indices: {indices[0]}, distances: {distances[0]}")
-
-        # Map indices to original URIs
-        similar_uris = [image_paths[idx] for idx in indices[0]]
-        print(f"Returning similar URIs: {similar_uris}")
-
-        return {"similar_images": similar_uris, "distances": distances[0].tolist()}
-
+            
+            # Convert features to the correct format
+            query_vector = np.array(features).astype('float32').reshape(1, -1)
+            
+            # Perform FAISS search with larger k to filter results
+            k_search = min(k * 2, len(image_paths))  # Search for more candidates
+            distances, indices = faiss_index.search(query_vector, k_search)
+            
+            # Normalize distances
+            max_dist = np.max(distances)
+            if max_dist > 0:
+                distances = distances / max_dist
+            
+            # Filter results based on distance threshold
+            threshold = 0.8
+            valid_indices = distances[0] < threshold
+            
+            similar_uris = [image_paths[idx] for idx in indices[0][valid_indices]]
+            distances = distances[0][valid_indices].tolist()
+            
+            # Return only up to k results
+            return {
+                "similar_images": similar_uris[:k], 
+                "distances": distances[:k],
+                "similarity_scores": [(1 - d) * 100 for d in distances[:k]]  # Convert to similarity percentage
+            }
+            
     except Exception as e:
         print(f"Error during search: {str(e)}")
         return JSONResponse(
@@ -291,6 +301,14 @@ async def query_images(uri: str):
 @app.get("/")
 async def root():
     return {"message": "Image Upload Server is running"}
+
+def create_faiss_index(dimension, features):
+    nlist = 100  # number of clusters
+    quantizer = faiss.IndexFlatL2(dimension)
+    index = faiss.IndexIVFFlat(quantizer, dimension, nlist, faiss.METRIC_L2)
+    index.train(features)  # Train on the data
+    index.add(features)
+    return index
 
 if __name__ == "__main__":
     import uvicorn
