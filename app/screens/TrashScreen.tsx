@@ -11,25 +11,40 @@ interface TrashScreenProps extends AppStackScreenProps<"Trash"> {}
 export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen() {
   const { photoStore } = useStores()
 
-  const renderItem = ({ item }: { item: string }) => (
+  const renderItem = ({ item }: { item: { uri: string; similarImages: string[] } }) => (
     <View style={styles.rowContainer}>
-      <Image source={{ uri: item }} style={styles.mainImage} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.similarImagesContainer}>
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Image key={index} source={{ uri: item }} style={styles.similarImage} />
-        ))}
-      </ScrollView>
+      <Image source={{ uri: item.uri }} style={styles.mainImage} />
+      <View style={styles.contentContainer}>
+        <Text 
+          text={`${item.similarImages.length} similar images found`} 
+          size="xs" 
+          style={styles.similarText}
+        />
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.similarImagesContainer}
+        >
+          {item.similarImages.map((similarUri, index) => (
+            <Image 
+              key={index} 
+              source={{ uri: similarUri }} 
+              style={styles.similarImage} 
+            />
+          ))}
+        </ScrollView>
+      </View>
     </View>
   )
 
   return (
     <Screen style={styles.root} preset="scroll">
-      {photoStore.deletedPhotoURIs.length === 0 ? (
+      {photoStore.deletedPhotos.length === 0 ? (
         <Text text="No items in Trash." />
       ) : (
         <FlatList
-          data={photoStore.deletedPhotoURIs.slice()}
-          keyExtractor={(uri) => uri}
+          data={photoStore.deletedPhotos.slice()}
+          keyExtractor={(item) => item.uri}
           renderItem={renderItem}
           contentContainerStyle={styles.listContentContainer}
         />
@@ -49,21 +64,31 @@ const styles = StyleSheet.create({
   } as ViewStyle,
   rowContainer: {
     flexDirection: "row",
-    alignItems: "center",
     marginBottom: spacing.md,
+    backgroundColor: colors.palette.neutral200,
+    borderRadius: 10,
+    padding: spacing.xs,
   } as ViewStyle,
   mainImage: {
-    width: 100,
-    height: 100,
+    width: 104,
+    height: 104,
     borderRadius: 8,
-    marginRight: spacing.sm,
   } as ImageStyle,
-  similarImagesContainer: {
+  contentContainer: {
     flex: 1,
+    marginLeft: spacing.sm,
+    justifyContent: "center",
+  } as ViewStyle,
+  similarText: {
+    color: colors.textDim,
+    marginBottom: spacing.xs,
+  } as ViewStyle,
+  similarImagesContainer: {
+    flexGrow: 0,
   } as ViewStyle,
   similarImage: {
-    width: 80,
-    height: 80,
+    width: 64,
+    height: 64,
     borderRadius: 6,
     marginRight: spacing.xs,
   } as ImageStyle,

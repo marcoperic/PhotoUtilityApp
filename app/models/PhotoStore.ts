@@ -1,31 +1,35 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 import { withSetPropAction } from "./helpers/withSetPropAction"
 
+interface DeletedPhoto {
+  uri: string;
+  similarImages: string[];
+}
+
 export const PhotoStoreModel = types
   .model("PhotoStore")
   .props({
     photoURIs: types.array(types.string),
-    deletedPhotoURIs: types.array(types.string),
+    deletedPhotos: types.array(types.model({
+      uri: types.string,
+      similarImages: types.array(types.string)
+    })),
   })
   .actions(withSetPropAction)
   .actions((store) => ({
     setPhotoURIs(uris: string[]) {
       store.photoURIs.replace(uris)
     },
-    addDeletedPhoto(uri: string) {
-      // Remove from active photos
+    addDeletedPhoto(uri: string, similarImages: string[] = []) {
       store.photoURIs.replace(store.photoURIs.filter(photoUri => photoUri !== uri))
-      // Add to deleted photos
-      store.deletedPhotoURIs.push(uri)
+      store.deletedPhotos.push({ uri, similarImages })
     },
     removeDeletedPhoto(uri: string) {
-      // Remove from deleted photos
-      store.deletedPhotoURIs.replace(store.deletedPhotoURIs.filter(photoUri => photoUri !== uri))
-      // Add back to active photos
+      store.deletedPhotos.replace(store.deletedPhotos.filter(photo => photo.uri !== uri))
       store.photoURIs.push(uri)
     },
     clearDeletedPhotos() {
-      store.deletedPhotoURIs.clear()
+      store.deletedPhotos.clear()
     }
   }))
   .views((store) => ({
@@ -33,10 +37,10 @@ export const PhotoStoreModel = types
       return store.photoURIs.slice()
     },
     get allDeletedPhotoURIs() {
-      return store.deletedPhotoURIs.slice()
+      return store.deletedPhotos.slice().map(photo => photo.uri)
     },
     isPhotoDeleted(uri: string) {
-      return store.deletedPhotoURIs.includes(uri)
+      return store.deletedPhotos.some(photo => photo.uri === uri)
     }
   }))
 

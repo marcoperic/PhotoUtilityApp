@@ -7,6 +7,7 @@ import { colors } from "../theme"
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AntDesign } from '@expo/vector-icons'
 import { useStores } from "../models/helpers/useStores"
+import APIClient from "../utils/APIClient"
 
 interface SwipeScreenProps extends AppStackScreenProps<"Swipe"> {}
 
@@ -18,6 +19,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const [animation] = useState(new Animated.Value(0))
   const [imageAnimation] = useState(new Animated.Value(1))
   const [overlay, setOverlay] = useState<"keep" | "remove" | null>(null)
+  const apiClient = new APIClient()
 
   useEffect(() => {
     const loadInitialPhoto = () => {
@@ -74,13 +76,35 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
     animateOverlay()
   }, [animateOverlay])
 
-  const handleRemove = useCallback(() => {
-    photoStore.addDeletedPhoto(photoStore.photoURIs[currentIndex])
-    console.log("Marked photo for deletion:", photoStore.photoURIs[currentIndex])
-    setOverlay("remove")
-    animateImageFadeOut(200) // Remove fade-out duration faster
-    animateOverlay()
-  }, [animateOverlay, currentIndex, photoStore])
+  const handleRemove = useCallback(async () => {
+    const currentUri = photoStore.photoURIs[currentIndex]
+    
+    try {
+      // First check if index exists
+      const { exists } = await apiClient.checkExistingIndex()
+      
+      if (exists) {
+        // Search for similar images
+        const { similar_images } = await apiClient.searchSimilarImages(currentUri)
+        photoStore.addDeletedPhoto(currentUri, similar_images)
+      } else {
+        // If no index exists, just delete without similar images
+        photoStore.addDeletedPhoto(currentUri, [])
+      }
+
+      console.log("Marked photo for deletion:", currentUri)
+      setOverlay("remove")
+      animateImageFadeOut(200)
+      animateOverlay()
+    } catch (error) {
+      console.error("Error processing similar images:", error)
+      // Still delete the photo even if similar image search fails
+      photoStore.addDeletedPhoto(currentUri, [])
+      setOverlay("remove")
+      animateImageFadeOut(200)
+      animateOverlay()
+    }
+  }, [animateOverlay, currentIndex, photoStore, apiClient])
 
   if (loading) {
     return (

@@ -1,16 +1,21 @@
 import * as MediaLibrary from 'expo-media-library';
+import ImageProcessor from './ImageProcessor';
+import APIClient from './APIClient';
+import { delay } from '../utils/delay'
 
 class PhotoLoader {
   private static instance: PhotoLoader;
   private photoURIs: string[];
   private totalPhotos: number;
   private loadedPhotos: number;
-  private MAX_IMAGES = 200; // Maximum number of images to load
+  private MAX_IMAGES = -1; // Maximum number of images to load
+  private apiClient: APIClient;
 
   private constructor() {
     this.photoURIs = [];
     this.totalPhotos = 0;
     this.loadedPhotos = 0;
+    this.apiClient = new APIClient();
   }
 
   /**
@@ -26,10 +31,15 @@ class PhotoLoader {
 
   /**
    * Initializes and loads all photos up to MAX_IMAGES.
-   * @param onProgress - Callback to update loading progress.
+   * After loading, it preprocesses the images.
+   * @param onProgress - Callback to update loading and processing progress.
    */
   async initialize(onProgress?: (progress: number) => void) {
     await this.loadAllPhotos(onProgress);
+    console.log(`Loaded ${this.photoURIs.length} photos. loadAllPhotos function finished.`);
+    if (this.photoURIs.length > 0) {
+      await this.preprocessAndZipImages(onProgress);
+    }
   }
 
   /**
@@ -88,7 +98,37 @@ class PhotoLoader {
   }
 
   /**
-   * Gets the loading progress as a value between 0 and 1.
+   * Preprocesses images, creates a zip archive, and uploads it to the server.
+   * Retries uploading until successful.
+   * @param onProgress - Callback to update processing progress.
+   */
+  async preprocessAndZipImages(onProgress?: (progress: number) => void) {
+    try {
+      const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs)
+      console.log(`Zip created at ${zipUri} with size ${size} bytes`)
+
+      // Continuously retry uploading the zip until it succeeds
+      let uploadSuccessful = false
+      while (!uploadSuccessful) {
+        try {
+          const response = await this.apiClient.uploadImages(zipUri)
+          console.log('Images uploaded successfully:', response)
+          uploadSuccessful = true
+          if (onProgress) {
+            onProgress(1) // Processing complete
+          }
+        } catch (error) {
+          console.error('Error during image uploading, retrying in 30 seconds...', error)
+          await delay(30000) // Wait 30 seconds before retrying
+        }
+      }
+    } catch (error) {
+      console.error('Error during image preprocessing and uploading:', error)
+    }
+  }
+
+  /**
+   * Gets the loading and processing progress as a value between 0 and 1.
    * @returns Progress value.
    */
   private getProgress(): number {
