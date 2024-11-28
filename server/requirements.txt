@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+torch
+torchvision
+pillow
+numpy
+faiss-cpu  # Use `faiss-gpu` if you want GPU support
+matplotlib
