@@ -1,3 +1,5 @@
+# THIS BRANCH USES PRE-SET URIs IN THE PHOTOSTORE FOR THE INTENTION OF ELIMINATING PROCESSING STEPS AND ALLOWING FOR RAPID PROTOTYPING. ACTUAL FUNCTIONAL TESTING SHOULD BE DONE IN MASTER.
+
 # Design Notes
 
 When the user swipes to delete an image, the URI is passed to the server and it returns the number of images that are within a certain distance. The original picture is added to the delete page and the neighbor images are also added. The number is displayed as a little pop-up, like a game point number.
