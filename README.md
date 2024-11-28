@@ -2,6 +2,20 @@
 
 When the user swipes to delete an image, the URI is passed to the server and it returns the number of images that are within a certain distance. The original picture is added to the delete page and the neighbor images are also added. The number is displayed as a little pop-up, like a game point number.
 
+The trash screen needs to have a feature that allows users to delete. There also needs to be a modal so that users can closely inspect the images that are going to be deleted.
+
+Track statistics on the profile screen
+
+Need to get a color palette and begin a branch for UI refinement
+
+## IAP
+
+IAP monetization - referrals for content creators?
+
+Limit for non-premium users to 10 swipes per day.
+
+Premium users get unlimited swipes and can also select the threshold for how similar images need to be to be deleted.
+
 # Welcome to your new ignited app!
 
 [![CircleCI](https://circleci.com/gh/infinitered/ignite.svg?style=svg)](https://circleci.com/gh/infinitered/ignite)
