@@ -86,3 +86,5 @@ web-build/
 !env.js
 
 /coverage
+server/user_data/1234/faiss.index
+server/user_data/1234/image_paths.json
