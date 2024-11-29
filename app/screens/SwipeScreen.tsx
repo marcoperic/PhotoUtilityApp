@@ -23,6 +23,8 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
 
   useEffect(() => {
     const loadInitialPhoto = () => {
+      console.log("PhotoURIs length:", photoStore.photoURIs.length)
+      console.log("First photo URI:", photoStore.photoURIs[0])
       if (photoStore.photoURIs.length > 0) {
         setDisplayPhoto({ uri: photoStore.photoURIs[0] })
       }

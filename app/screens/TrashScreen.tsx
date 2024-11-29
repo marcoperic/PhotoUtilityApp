@@ -1,6 +1,6 @@
 import React, { FC } from "react"
 import { observer } from "mobx-react-lite"
-import { FlatList, Image, ImageStyle, ScrollView, StyleSheet, View, ViewStyle } from "react-native"
+import { FlatList, Image, ImageStyle, StyleSheet, View, ViewStyle } from "react-native"
 import { Screen, Text } from "app/components"
 import { useStores } from "app/models"
 import { colors, spacing } from "app/theme"
@@ -20,25 +20,25 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
           size="xs" 
           style={styles.similarText}
         />
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <FlatList
+          horizontal
+          data={item.similarImages}
+          keyExtractor={(_, index) => index.toString()}
+          showsHorizontalScrollIndicator={false}
           style={styles.similarImagesContainer}
-        >
-          {item.similarImages.map((similarUri, index) => (
+          renderItem={({ item: similarUri }) => (
             <Image 
-              key={index} 
               source={{ uri: similarUri }} 
               style={styles.similarImage} 
             />
-          ))}
-        </ScrollView>
+          )}
+        />
       </View>
     </View>
   )
 
   return (
-    <Screen style={styles.root} preset="scroll">
+    <Screen style={styles.root}>
       {photoStore.deletedPhotos.length === 0 ? (
         <Text text="No items in Trash." />
       ) : (
