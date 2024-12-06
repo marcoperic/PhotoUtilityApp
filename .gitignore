@@ -24,7 +24,7 @@ ios/.xcode.env.local
 
 # Android/IntelliJ
 #
-build/
+# build/
 .idea
 .gradle
 local.properties
@@ -69,7 +69,7 @@ buck-out/
 # Expo
 .expo/*
 bin/Exponent.app
-/android
+# /android
 /ios
 
 ## Secrets
