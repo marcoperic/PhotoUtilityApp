@@ -7,6 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import PhotoLoader from "app/utils/PhotoLoader"
 import { useNavigation } from "@react-navigation/native"
 import { useStores } from "app/models"
+import { checkPermission } from "app/utils/ImageDeleteService"
 
 interface DisclaimerScreenProps extends AppStackScreenProps<"Disclaimer"> {}
 
@@ -30,7 +31,9 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   const handlePhotoLoading = async () => {
     setLoading(true)
     try {
-      setDisclaimerAccepted()
+      // setDisclaimerAccepted()
+
+      checkPermission()
       
       await PhotoLoader.initialize((progressValue) => {
         console.log("Progress:", progressValue)

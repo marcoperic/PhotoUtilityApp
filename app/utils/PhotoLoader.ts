@@ -8,7 +8,7 @@ class PhotoLoader {
   private photoURIs: string[];
   private totalPhotos: number;
   private loadedPhotos: number;
-  private MAX_IMAGES = -1; // Maximum number of images to load
+  private MAX_IMAGES = 10; // Maximum number of images to load
   private apiClient: APIClient;
 
   private constructor() {
@@ -38,7 +38,7 @@ class PhotoLoader {
     await this.loadAllPhotos(onProgress);
     console.log(`Loaded ${this.photoURIs.length} photos. loadAllPhotos function finished.`);
     if (this.photoURIs.length > 0) {
-      await this.preprocessAndZipImages(onProgress);
+      // await this.preprocessAndZipImages(onProgress);
     }
   }
 

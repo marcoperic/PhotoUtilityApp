@@ -31,7 +31,10 @@
         "image": "./assets/images/splash-logo-android-universal.png",
         "resizeMode": "contain",
         "backgroundColor": "#191015"
-      }
+      },
+      "permissions": [
+        "MANAGE_EXTERNAL_STORAGE"
+      ]
     },
     "ios": {
       "icon": "./assets/images/app-icon-ios.png",
@@ -54,12 +57,6 @@
       "bundler": "metro"
     },
     "plugins": [
-      [
-        "react-native-auth0",
-        {
-          "domain": "dev-a4dbsn3lzfexec27.us.auth0.com"
-        }
-      ],
       "expo-localization",
       [
         "expo-build-properties",
