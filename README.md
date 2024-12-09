@@ -1,3 +1,12 @@
+# CHANGES FOR THIS BRANCH
+
+- When the user clicks delete, the network operations should occur asynchronously. Currently, the app flow gets held up by it.
+- The photo loading needs to happen after the user clicks the disclaimer. The UI should be usable during this process.
+- The progress bar / header needs to be updatable
+- Create the profile screen
+- Implement left-right swipe on the swipescreen
+- Need to make the HWID generation robust
+
 # Design Notes
 
 When the user swipes to delete an image, the URI is passed to the server and it returns the number of images that are within a certain distance. The original picture is added to the delete page and the neighbor images are also added. The number is displayed as a little pop-up, like a game point number.
