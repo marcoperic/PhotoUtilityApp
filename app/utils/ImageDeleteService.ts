@@ -43,6 +43,19 @@ export const deleteImage = async (uri: string): Promise<string> => {
   }
 };
 
+// Check permission
+export async function checkPermission() {
+  const hasPermission = await ImageDeleteModule.hasPermission();
+  if (!hasPermission) {
+    requestPermission();
+  }
+}
+
+// Request permission
+export function requestPermission() {
+  ImageDeleteModule.requestPermission();
+}
+
 export default {
   deleteImage,
 };
