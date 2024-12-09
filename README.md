@@ -1,3 +1,11 @@
+# CHANGES FOR THIS BRANCH
+
+- Delete all button
+- Sort the items on the trash screen by most to least similar images found
+- Ensure that there are no duplicates returned in the similarity search
+- Implement the large picture display with little images preview. There should be a detailed modal when the picture is clicked. If a small preview image is clicked, then the modal will appear and it will highlight the clicked image.
+- Ensure that all images on the trash screen are selected and marked for deletion
+
 # Design Notes
 
 When the user swipes to delete an image, the URI is passed to the server and it returns the number of images that are within a certain distance. The original picture is added to the delete page and the neighbor images are also added. The number is displayed as a little pop-up, like a game point number.
