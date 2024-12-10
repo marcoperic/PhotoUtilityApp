@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState, useCallback } from "react"
 import { observer } from "mobx-react-lite"
-import { ActivityIndicator, Image, StyleSheet, View, ViewStyle, ImageStyle, TextStyle, ImageSourcePropType, TouchableOpacity, Animated } from "react-native"
+import { ActivityIndicator, Image, StyleSheet, View, ViewStyle, ImageStyle, TextStyle, ImageSourcePropType, TouchableOpacity, Animated, Alert } from "react-native"
 import { AppStackScreenProps } from "app/navigators"
 import { Screen, Text, Button } from "app/components"
 import { colors } from "../theme"
@@ -79,54 +79,69 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
     animateOverlay()
   }, [animateOverlay])
 
-  const handleRemove = useCallback(async () => {
-    const currentUri = photoStore.photoURIs[currentIndex];
-    // console.log('Current URI type:', typeof currentUri);
-    console.log('Current URI value:', currentUri);
+//   const handleRemove = useCallback(async () => {
+//     const currentUri = photoStore.photoURIs[currentIndex];
+//     // console.log('Current URI type:', typeof currentUri);
+//     console.log('Current URI value:', currentUri);
     
-    try {
-        await deleteImage(currentUri);
-        console.log('Image deleted successfully');
-        // Continue with your success handling...
-    } catch (e) {
-        console.error('Deletion error:', e);
-        Alert.alert(
-            'Error',
-            'Failed to delete image: ' + e.message,
-            [{ text: 'OK' }]
-        );
-    }
-}, [currentIndex, photoStore]);
-
-// const handleRemove = useCallback(async () => {
-//   const currentUri = photoStore.photoURIs[currentIndex]
-  
-//   try {
-//     // First check if index exists
-//     const { exists } = await apiClient.checkExistingIndex()
-    
-//     if (exists) {
-//       // Search for similar images
-//       const { similar_images } = await apiClient.searchSimilarImages(currentUri)
-//       photoStore.addDeletedPhoto(currentUri, similar_images)
-//     } else {
-//       // If no index exists, just delete without similar images
-//       photoStore.addDeletedPhoto(currentUri, [])
+//     try {
+//         await deleteImage(currentUri);
+//         console.log('Image deleted successfully');
+//         // Continue with your success handling...
+//     } catch (e) {
+//         console.error('Deletion error:', e);
+//         Alert.alert(
+//             'Error',
+//             'Failed to delete image: ' + e.message,
+//             [{ text: 'OK' }]
+//         );
 //     }
+// }, [currentIndex, photoStore]);
 
-//     console.log("Marked photo for deletion:", currentUri)
-//     setOverlay("remove")
-//     animateImageFadeOut(200)
-//     animateOverlay()
-//   } catch (error) {
-//     console.error("Error processing similar images:", error)
-//     // Still delete the photo even if similar image search fails
-//     photoStore.addDeletedPhoto(currentUri, [])
-//     setOverlay("remove")
-//     animateImageFadeOut(200)
-//     animateOverlay()
-//   }
-// }, [animateOverlay, currentIndex, photoStore, apiClient])
+const handleRemove = useCallback(async () => {
+  const currentUri = photoStore.photoURIs[currentIndex]
+  
+  // Start the UI animations immediately
+  setOverlay("remove")
+  animateImageFadeOut(200)
+  
+  // Process the deletion asynchronously
+  const processDelete = async () => {
+    try {
+      // Check if we need to verify the index
+      const now = Date.now()
+      const INDEX_CHECK_INTERVAL = 1000 * 60 * 60 // 1 hour
+      
+      if (now - photoStore.indexStatus.lastChecked > INDEX_CHECK_INTERVAL) {
+        const { exists } = await apiClient.checkExistingIndex()
+        photoStore.setIndexStatus(exists)
+      }
+      
+      let similarImages: string[] = []
+      if (photoStore.indexStatus.exists) {
+        try {
+          const { similar_images } = await apiClient.searchSimilarImages(currentUri)
+          similarImages = similar_images
+        } catch (error) {
+          console.error("Error finding similar images:", error)
+        }
+      }
+      
+      photoStore.addDeletedPhoto(currentUri, similarImages)
+      console.log("Marked photo for deletion:", currentUri)
+      
+    } catch (error) {
+      console.error("Error processing deletion:", error)
+      photoStore.addDeletedPhoto(currentUri, [])
+    }
+  }
+  
+  // Process deletion in the background
+  processDelete()
+  
+  // Continue with UI animation immediately
+  animateOverlay()
+}, [currentIndex, photoStore, apiClient, animateOverlay])
 
 
   if (loading) {
