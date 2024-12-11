@@ -6,6 +6,14 @@ export const PreprocessingStoreModel = types
     isPreprocessing: types.optional(types.boolean, false),
     progress: types.optional(types.number, 0),
   })
+  .views((store) => ({
+    get displayProgress() {
+      // Photo loading: 0-50%
+      // Preprocessing: 50-85%
+      // Server upload: 85-100%
+      return Math.round(store.progress * 100)
+    }
+  }))
   .actions((store) => ({
     setIsPreprocessing(value: boolean) {
       store.isPreprocessing = value

@@ -1,7 +1,7 @@
 # CHANGES FOR THIS BRANCH
 
-- When the user clicks delete, the network operations should occur asynchronously. Currently, the app flow gets held up by it.
-- The photo loading needs to happen after the user clicks the disclaimer. The UI should be usable during this process.
+- ~~When the user clicks delete, the network operations should occur asynchronously. Currently, the app flow gets held up by it.~~
+- ~~The photo loading needs to happen after the user clicks the disclaimer. The UI should be usable during this process.~~
 - The progress bar / header needs to be updatable
 - Create the profile screen
 - Implement left-right swipe on the swipescreen

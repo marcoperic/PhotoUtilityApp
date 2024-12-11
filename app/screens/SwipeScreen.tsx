@@ -147,7 +147,11 @@ const handleRemove = useCallback(async () => {
         <View style={styles.preprocessingContainer}>
           <ActivityIndicator size="large" color={colors.palette.neutral500} />
           <Text style={styles.preprocessingText}>
-            Preprocessing is in progress... {Math.round(preprocessingStore.progress * 100)}%
+            {preprocessingStore.displayProgress >= 75 
+              ? "Building photo index..." 
+              : preprocessingStore.displayProgress >= 20
+              ? "Processing photos..." 
+              : "Loading photos..."} {preprocessingStore.displayProgress}%
           </Text>
           <Text style={styles.preprocessingSubtext}>
             Come back soon!
