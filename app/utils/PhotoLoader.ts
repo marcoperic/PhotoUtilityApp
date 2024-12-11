@@ -35,10 +35,18 @@ class PhotoLoader {
    * @param onProgress - Callback to update loading and processing progress.
    */
   async initialize(onProgress?: (progress: number) => void) {
-    await this.loadAllPhotos(onProgress);
+    // Wrap the progress callback to show combined progress
+    const wrappedProgress = (progress: number) => {
+      if (onProgress) {
+        onProgress(this.getTotalProgress(progress, 0))
+      }
+    }
+
+    await this.loadAllPhotos(wrappedProgress);
     console.log(`Loaded ${this.photoURIs.length} photos. loadAllPhotos function finished.`);
+    
     if (this.photoURIs.length > 0) {
-      // await this.preprocessAndZipImages(onProgress);
+      await this.preprocessAndZipImages(onProgress);
     }
   }
 
@@ -104,10 +112,14 @@ class PhotoLoader {
    */
   async preprocessAndZipImages(onProgress?: (progress: number) => void) {
     try {
+      // Create zip - 25% of preprocessing progress
       const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs)
       console.log(`Zip created at ${zipUri} with size ${size} bytes`)
+      if (onProgress) {
+        onProgress(this.getTotalProgress(1, 0.25))
+      }
 
-      // Continuously retry uploading the zip until it succeeds
+      // Upload zip - remaining 75% of preprocessing progress
       let uploadSuccessful = false
       while (!uploadSuccessful) {
         try {
@@ -115,11 +127,11 @@ class PhotoLoader {
           console.log('Images uploaded successfully:', response)
           uploadSuccessful = true
           if (onProgress) {
-            onProgress(1) // Processing complete
+            onProgress(1) // Complete
           }
         } catch (error) {
           console.error('Error during image uploading, retrying in 30 seconds...', error)
-          await delay(30000) // Wait 30 seconds before retrying
+          await delay(30000)
         }
       }
     } catch (error) {
@@ -142,6 +154,12 @@ class PhotoLoader {
    */
   getPhotoURIs(): string[] {
     return this.photoURIs;
+  }
+
+  // Add a new method to calculate total progress including preprocessing
+  private getTotalProgress(loadingProgress: number, preprocessingProgress: number): number {
+    // Loading photos is 50% of the total progress, preprocessing is the other 50%
+    return (loadingProgress * 0.5) + (preprocessingProgress * 0.5);
   }
 }
 

@@ -13,7 +13,7 @@ import { deleteImage } from "../utils/ImageDeleteService"
 interface SwipeScreenProps extends AppStackScreenProps<"Swipe"> {}
 
 export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen() {
-  const { photoStore } = useStores()
+  const { photoStore, preprocessingStore } = useStores()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [displayPhoto, setDisplayPhoto] = useState<ImageSourcePropType | null>(null)
@@ -23,17 +23,14 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const apiClient = new APIClient()
 
   useEffect(() => {
-    const loadInitialPhoto = () => {
-      console.log("PhotoURIs length:", photoStore.photoURIs.length)
-      console.log("First photo URI:", photoStore.photoURIs[0])
-      if (photoStore.photoURIs.length > 0) {
-        setDisplayPhoto({ uri: photoStore.photoURIs[0] })
-      }
+    // This effect will run whenever preprocessingStore.isPreprocessing changes
+    if (!preprocessingStore.isPreprocessing && photoStore.photoURIs.length > 0) {
+      console.log("Preprocessing complete, loading initial photo")
+      setDisplayPhoto({ uri: photoStore.photoURIs[0] })
+      setCurrentIndex(0)
       setLoading(false)
     }
-
-    loadInitialPhoto()
-  }, [photoStore.photoURIs])
+  }, [preprocessingStore.isPreprocessing, photoStore.photoURIs])
 
   const handleNextPhoto = useCallback(() => {
     const nextIndex = currentIndex + 1
@@ -143,6 +140,22 @@ const handleRemove = useCallback(async () => {
   animateOverlay()
 }, [currentIndex, photoStore, apiClient, animateOverlay])
 
+
+  if (preprocessingStore.isPreprocessing) {
+    return (
+      <Screen style={$root} preset="scroll">
+        <View style={styles.preprocessingContainer}>
+          <ActivityIndicator size="large" color={colors.palette.neutral500} />
+          <Text style={styles.preprocessingText}>
+            Preprocessing is in progress... {Math.round(preprocessingStore.progress * 100)}%
+          </Text>
+          <Text style={styles.preprocessingSubtext}>
+            Come back soon!
+          </Text>
+        </View>
+      </Screen>
+    )
+  }
 
   if (loading) {
     return (
@@ -297,6 +310,24 @@ const styles = StyleSheet.create({
     height: '75%',
     borderRadius: 15,
     marginVertical: 20,
+  },
+  preprocessingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  preprocessingText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
+    color: colors.text,
+  },
+  preprocessingSubtext: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 10,
+    color: colors.textDim,
   },
 })
 

@@ -22,6 +22,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
 
   const {
     photoStore,
+    preprocessingStore,
   } = useStores()
 
   useEffect(() => {
@@ -31,19 +32,25 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   const handlePhotoLoading = async () => {
     setLoading(true)
     try {
-      // setDisclaimerAccepted()
-
       checkPermission()
+      // setDisclaimerAccepted()
       
-      await PhotoLoader.initialize((progressValue) => {
+      // Start photo loading in background
+      photoStore.setPhotoURIs([]) // Clear any existing URIs
+      preprocessingStore.setIsPreprocessing(true)
+      
+      // Start background processing
+      PhotoLoader.initialize((progressValue) => {
         console.log("Progress:", progressValue)
-        setProgress(progressValue)
+        preprocessingStore.setProgress(progressValue)
+      }).then(() => {
+        photoStore.setPhotoURIs(PhotoLoader.getPhotoURIs())
+        preprocessingStore.setIsPreprocessing(false)
+      }).catch((error) => {
+        console.error('Failed to initialize PhotoLoader:', error)
       })
-      
-      // Store the loaded URIs in PhotoStore
-      photoStore.setPhotoURIs(PhotoLoader.getPhotoURIs())
-      
-      // Navigate after photos are loaded
+
+      // Navigate immediately without waiting
       navigation.navigate("Swipe" as never)
     } catch (error) {
       console.error('Failed to initialize PhotoLoader:', error)
