@@ -5,7 +5,7 @@ import { TextStyle, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Icon } from "../components"
 import { translate } from "../i18n"
-import { DemoShowroomScreen, DemoDebugScreen, SwipeScreen, TrashScreen } from "../screens"
+import { DemoShowroomScreen, DemoDebugScreen, SwipeScreen, TrashScreen, ProfileScreen } from "../screens"
 import { DemoPodcastListScreen } from "../screens/DemoPodcastListScreen"
 import { colors, spacing, typography } from "../theme"
 import { AppStackParamList, AppStackScreenProps } from "./AppNavigator"
@@ -16,6 +16,7 @@ export type DemoTabParamList = {
   DemoShowroom: { queryIndex?: string; itemIndex?: string }
   DemoDebug: undefined
   DemoPodcastList: undefined
+  ProfileScreen: undefined
 }
 
 /**
@@ -77,7 +78,7 @@ export function DemoNavigator() {
 
       <Tab.Screen
         name="DemoDebug"
-        component={DemoDebugScreen}
+        component={ProfileScreen}
         options={{
           tabBarLabel: "Profile",
           tabBarIcon: ({ focused }) => (

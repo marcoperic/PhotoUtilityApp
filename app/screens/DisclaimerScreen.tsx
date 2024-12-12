@@ -33,7 +33,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
     setLoading(true)
     try {
       checkPermission()
-      // setDisclaimerAccepted()
+      // setDisclaimerAccepted() TODO: Uncomment this
       
       // Start photo loading in background
       photoStore.setPhotoURIs([]) // Clear any existing URIs
@@ -76,12 +76,14 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
 
         {/* Content Section */}
         <View style={$contentContainer}>
-          <Text style={$paragraph} text="We value your privacy and want to be transparent about how we handle your data:" />
+          <Text style={$paragraph} text="Thanks for downloading our app! We value your privacy and want to be transparent about how we handle your data:" />
           
-          <Text style={$bulletPoint} text="• We do not save your data on our servers" />
+          <Text style={$bulletPoint} text="• No photos are saved on our servers" />
           <Text style={$bulletPoint} text="• On the first launch, your device processes your photos and sends some anonymous data to our server" />
           <Text style={$bulletPoint} text="• We use this data to give you accurate recommendations for photo deletion" />
-          <Text style={$bulletPoint} text="• We never share your personal information with third parties" />
+          <Text style={$bulletPoint} text="• We will never share your personal information with third parties" />
+          <Text style={$bulletPoint} text="• We are committed to protecting your privacy and data" />
+
           
           <Text style={$paragraph} text="By continuing to use this app, you agree to our data handling practices as described in our Privacy Policy." />
         </View>
@@ -89,7 +91,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
         {/* Button Section */}
         <View style={$buttonContainer}>
           <Button
-            text="Sounds Good!"
+            text="Grant permissions"
             style={[$button, loading && $buttonDisabled]}
             textStyle={$buttonText}
             pressedStyle={$buttonPressed}
