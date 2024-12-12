@@ -3,9 +3,12 @@
 - ~~When the user clicks delete, the network operations should occur asynchronously. Currently, the app flow gets held up by it.~~
 - ~~The photo loading needs to happen after the user clicks the disclaimer. The UI should be usable during this process.~~
 - ~~The progress bar / header needs to be updatable [handled in another future UI branch]~~
-- Create the profile screen
+- ~~Create the profile screen~~
 - Implement left-right swipe on the swipescreen
 - Need to make the HWID generation robust
+- User cannot navigate backwards to the disclaimer screen
+- ~~Encountered two children with the same key. Keys should be unique so that components maintain their identity across updates (ERROR)~~
+    - This error happens because the server returns a similar image that is the same as the one the user is trying to delete.
 
 # Design Notes
 
@@ -24,6 +27,8 @@ IAP monetization - referrals for content creators?
 Limit for non-premium users to 10 swipes per day.
 
 Premium users get unlimited swipes and can also select the threshold for how similar images need to be to be deleted.
+
+On the trash screen, show the number of similar images that are going to be deleted, but limit it to 3 and blur the rest out. Premium membership required.
 
 # Welcome to your new ignited app!
 

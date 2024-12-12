@@ -5,7 +5,7 @@ class APIClient {
   public userId: string;
 
   constructor() {
-    this.baseUrl = 'http://172.16.116.13:8000'; // Replace with your server's IP
+    this.baseUrl = 'http://172.16.116.18:8000'; // Replace with your server's IP
     this.userId = '1234'; // Hardcoded for testing
   }
 
