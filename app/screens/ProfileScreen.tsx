@@ -18,7 +18,7 @@ export const ProfileScreen: FC<ProfileScreenProps> = observer(function ProfileSc
     total: 0,
   })
   const [spaceReclaimed, setSpaceReclaimed] = useState(0)
-  const apiClient = new APIClient()
+  const apiClient = APIClient
 
   useEffect(() => {
     // Fetch storage statistics
@@ -86,7 +86,7 @@ export const ProfileScreen: FC<ProfileScreenProps> = observer(function ProfileSc
         <Card
           style={$infoCard}
           heading="Device Information"
-          content={`Hardware ID: ${apiClient.hwid}\nSubscription: Free Plan`}
+          content={`Hardware ID: ${APIClient.userId}\nSubscription: Free Plan`}
           preset="reversed"
         />
 

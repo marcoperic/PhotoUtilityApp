@@ -1,12 +1,20 @@
 import * as FileSystem from 'expo-file-system';
 
 class APIClient {
+  private static instance: APIClient;
   public baseUrl: string;
   public userId: string;
 
-  constructor() {
-    this.baseUrl = 'http://172.16.116.18:8000'; // Replace with your server's IP
+  private constructor() {
+    this.baseUrl = 'http://10.5.1.254:8000'; // Replace with your server's IP
     this.userId = '1234'; // Hardcoded for testing
+  }
+
+  public static getInstance(): APIClient {
+    if (!APIClient.instance) {
+      APIClient.instance = new APIClient();
+    }
+    return APIClient.instance;
   }
 
   async checkExistingIndex(): Promise<{ exists: boolean; imageCount?: number }> {
@@ -96,4 +104,4 @@ class APIClient {
   }
 }
 
-export default APIClient;
+export default APIClient.getInstance();

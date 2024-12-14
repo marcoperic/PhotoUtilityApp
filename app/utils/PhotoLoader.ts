@@ -9,13 +9,13 @@ class PhotoLoader {
   private totalPhotos: number;
   private loadedPhotos: number;
   private MAX_IMAGES = 500; // Maximum number of images to load
-  private apiClient: APIClient;
+  private apiClient: typeof APIClient;
 
   private constructor() {
     this.photoURIs = [];
     this.totalPhotos = 0;
     this.loadedPhotos = 0;
-    this.apiClient = new APIClient();
+    this.apiClient = APIClient;
   }
 
   /**
