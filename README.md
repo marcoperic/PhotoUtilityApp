@@ -10,6 +10,7 @@
 - ~~Encountered two children with the same key. Keys should be unique so that components maintain their identity across updates (ERROR)~~
     - This error happens because the server returns a similar image that is the same as the one the user is trying to delete.
 - ~~APIClient is not singleton~~
+- Need to test server performance with multiple devices simultaneously making requests
 
 # Design Notes
 
