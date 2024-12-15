@@ -1,17 +1,41 @@
 import * as FileSystem from 'expo-file-system';
+import { useStores } from '../models';
 
 class APIClient {
+  private static instance: APIClient;
   public baseUrl: string;
-  public userId: string;
+  private _userId: string | null;
 
-  constructor() {
-    this.baseUrl = 'http://172.16.116.18:8000'; // Replace with your server's IP
-    this.userId = '1234'; // Hardcoded for testing
+  private constructor() {
+    this.baseUrl = 'http://10.5.1.254:8000';
+    this._userId = null;
+  }
+
+  public static getInstance(): APIClient {
+    if (!APIClient.instance) {
+      APIClient.instance = new APIClient();
+    }
+    return APIClient.instance;
+  }
+
+  public setUserId(id: string) {
+    if (!id) {
+      throw new Error('User ID cannot be null or undefined');
+    }
+    this._userId = id;
+  }
+
+  public getUserId(): string {
+    if (!this._userId) {
+      throw new Error('User ID not set. Please call setUserId first.');
+    }
+    return this._userId;
   }
 
   async checkExistingIndex(): Promise<{ exists: boolean; imageCount?: number }> {
     try {
-      const response = await fetch(`${this.baseUrl}/check_index/${this.userId}`);
+      const userId = this.getUserId();
+      const response = await fetch(`${this.baseUrl}/check_index/${userId}`);
       const result = await response.json();
       return result;
     } catch (error) {
@@ -27,7 +51,7 @@ class APIClient {
       name: 'images.zip',
       type: 'application/zip'
     } as any);
-    formData.append('user_id', this.userId);
+    formData.append('user_id', this.getUserId());
 
     try {
       const response = await fetch(`${this.baseUrl}/imgUpload`, {
@@ -60,12 +84,9 @@ class APIClient {
       type: 'image/jpeg'
     } as any);
     formData.append('k', k.toString());
-    formData.append('user_id', this.userId);
+    formData.append('user_id', this.getUserId());
 
     try {
-      console.log(`Sending search request to ${this.baseUrl}/search`);
-      console.log('Image URI:', imageUri);
-      
       const response = await fetch(`${this.baseUrl}/search`, {
         method: 'POST',
         body: formData,
@@ -74,23 +95,14 @@ class APIClient {
         },
       });
 
-      console.log('Response status:', response.status);
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-
       if (!response.ok) {
-        throw new Error(`Search failed: ${response.status} - ${responseText}`);
+        throw new Error(`Search failed: ${response.status}`);
       }
 
-      const result = JSON.parse(responseText);
+      const result = await response.json();
       return result;
     } catch (error) {
       console.error('Error searching similar images:', error);
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
       throw error;
     }
   }

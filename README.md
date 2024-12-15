@@ -1,3 +1,22 @@
+# CHANGES FOR THIS BRANCH
+
+- ~~When the user clicks delete, the network operations should occur asynchronously. Currently, the app flow gets held up by it.~~
+- ~~The photo loading needs to happen after the user clicks the disclaimer. The UI should be usable during this process.~~
+- ~~The progress bar / header needs to be updatable [handled in another future UI branch]~~
+- ~~Create the profile screen~~
+- Implement left-right swipe on the swipescreen
+- ~~Need to make the HWID generation robust~~
+- User cannot navigate backwards to the disclaimer screen
+- ~~Encountered two children with the same key. Keys should be unique so that components maintain their identity across updates (ERROR)~~
+    - ~~This error happens because the server returns a similar image that is the same as the one the user is trying to delete.~~
+- ~~APIClient is not singleton~~
+- Need to test server performance with multiple devices simultaneously making requests
+- ~~Thread-safe server implementation~~
+- Server needs to delete temp files
+- Server should not return duplicate similar images
+- Server should only take URI as input for search, not entire image
+- Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)
+
 # Design Notes
 
 When the user swipes to delete an image, the URI is passed to the server and it returns the number of images that are within a certain distance. The original picture is added to the delete page and the neighbor images are also added. The number is displayed as a little pop-up, like a game point number.
@@ -15,6 +34,8 @@ IAP monetization - referrals for content creators?
 Limit for non-premium users to 10 swipes per day.
 
 Premium users get unlimited swipes and can also select the threshold for how similar images need to be to be deleted.
+
+On the trash screen, show the number of similar images that are going to be deleted, but limit it to 3 and blur the rest out. Premium membership required.
 
 # Welcome to your new ignited app!
 

@@ -14,6 +14,13 @@ export const PhotoStoreModel = types
       uri: types.string,
       similarImages: types.array(types.string)
     })),
+    indexStatus: types.optional(
+      types.model({
+        exists: types.optional(types.boolean, false),
+        lastChecked: types.optional(types.number, 0)
+      }),
+      { exists: false, lastChecked: 0 }
+    )
   })
   .actions(withSetPropAction)
   .actions((store) => ({
@@ -30,6 +37,10 @@ export const PhotoStoreModel = types
     },
     clearDeletedPhotos() {
       store.deletedPhotos.clear()
+    },
+    setIndexStatus(exists: boolean) {
+      store.indexStatus.exists = exists
+      store.indexStatus.lastChecked = Date.now()
     }
   }))
   .views((store) => ({

@@ -15,7 +15,7 @@ class PhotoLoader {
     this.photoURIs = [];
     this.totalPhotos = 0;
     this.loadedPhotos = 0;
-    this.apiClient = new APIClient();
+    this.apiClient = APIClient.getInstance();
   }
 
   /**
@@ -35,10 +35,33 @@ class PhotoLoader {
    * @param onProgress - Callback to update loading and processing progress.
    */
   async initialize(onProgress?: (progress: number) => void) {
-    await this.loadAllPhotos(onProgress);
+    // Wrap the progress callback to show combined progress
+    // Photo loading: 0-50%
+    // Preprocessing: 50-85%
+    // Server upload: 85-100%
+    const wrappedProgress = (progress: number, phase: 'loading' | 'preprocessing' | 'uploading') => {
+      if (onProgress) {
+        let totalProgress = 0;
+        switch (phase) {
+          case 'loading':
+            totalProgress = progress * 0.2; // 0-20%
+            break;
+          case 'preprocessing':
+            totalProgress = 0.2 + (progress * 0.65); // 20-85%
+            break;
+          case 'uploading':
+            totalProgress = 0.85 + (progress * 0.15); // 85-100%
+            break;
+        }
+        onProgress(totalProgress);
+      }
+    }
+
+    await this.loadAllPhotos((progress) => wrappedProgress(progress, 'loading'));
     console.log(`Loaded ${this.photoURIs.length} photos. loadAllPhotos function finished.`);
+    
     if (this.photoURIs.length > 0) {
-      await this.preprocessAndZipImages(onProgress);
+      await this.preprocessAndZipImages((progress) => wrappedProgress(progress, 'preprocessing'));
     }
   }
 
@@ -104,26 +127,34 @@ class PhotoLoader {
    */
   async preprocessAndZipImages(onProgress?: (progress: number) => void) {
     try {
-      const { uri: zipUri, size } = await ImageProcessor.createImageZip(this.photoURIs)
-      console.log(`Zip created at ${zipUri} with size ${size} bytes`)
+      const imageProcessor = ImageProcessor.getInstance();
+      const { uri: zipUri, size } = await imageProcessor.createImageZip(
+        this.photoURIs,
+        (processingProgress) => {
+          if (onProgress) {
+            const scaledProgress = 0.2 + (processingProgress * 0.65);
+            onProgress(scaledProgress);
+          }
+        }
+      );
 
-      // Continuously retry uploading the zip until it succeeds
-      let uploadSuccessful = false
+      // Upload zip - remaining progress
+      let uploadSuccessful = false;
       while (!uploadSuccessful) {
         try {
-          const response = await this.apiClient.uploadImages(zipUri)
-          console.log('Images uploaded successfully:', response)
-          uploadSuccessful = true
+          const response = await this.apiClient.uploadImages(zipUri);
+          console.log('Images uploaded successfully:', response);
+          uploadSuccessful = true;
           if (onProgress) {
-            onProgress(1) // Processing complete
+            onProgress(1); // Complete
           }
         } catch (error) {
-          console.error('Error during image uploading, retrying in 30 seconds...', error)
-          await delay(30000) // Wait 30 seconds before retrying
+          console.error('Error during image uploading, retrying in 30 seconds...', error);
+          await delay(30000);
         }
       }
     } catch (error) {
-      console.error('Error during image preprocessing and uploading:', error)
+      console.error('Error during image preprocessing and uploading:', error);
     }
   }
 
@@ -142,6 +173,12 @@ class PhotoLoader {
    */
   getPhotoURIs(): string[] {
     return this.photoURIs;
+  }
+
+  // Add a new method to calculate total progress including preprocessing
+  private getTotalProgress(loadingProgress: number, preprocessingProgress: number): number {
+    // Loading photos is 50% of the total progress, preprocessing is the other 50%
+    return (loadingProgress * 0.5) + (preprocessingProgress * 0.5);
   }
 }
 

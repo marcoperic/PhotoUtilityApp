@@ -42,6 +42,7 @@ export type AppStackParamList = {
   Disclaimer: undefined
 	Swipe: undefined
 	Trash: undefined
+	Profile: undefined
 	// IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }
 
@@ -80,6 +81,7 @@ const AppStack = observer(function AppStack() {
       {/* <Stack.Screen name="Disclaimer" component={Screens.DisclaimerScreen} /> */}
 			<Stack.Screen name="Swipe" component={DemoNavigator} />
 			<Stack.Screen name="Trash" component={DemoNavigator} />
+			<Stack.Screen name="Profile" component={DemoNavigator} />
 			{/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>
   )

@@ -11,31 +11,36 @@ interface TrashScreenProps extends AppStackScreenProps<"Trash"> {}
 export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen() {
   const { photoStore } = useStores()
 
-  const renderItem = ({ item }: { item: { uri: string; similarImages: string[] } }) => (
-    <View style={styles.rowContainer}>
-      <Image source={{ uri: item.uri }} style={styles.mainImage} />
-      <View style={styles.contentContainer}>
-        <Text 
-          text={`${item.similarImages.length} similar images found`} 
-          size="xs" 
-          style={styles.similarText}
-        />
-        <FlatList
-          horizontal
-          data={item.similarImages}
-          keyExtractor={(_, index) => index.toString()}
-          showsHorizontalScrollIndicator={false}
-          style={styles.similarImagesContainer}
-          renderItem={({ item: similarUri }) => (
-            <Image 
-              source={{ uri: similarUri }} 
-              style={styles.similarImage} 
-            />
-          )}
-        />
+  const renderItem = ({ item }: { item: { uri: string; similarImages: string[] } }) => {
+    // Filter out the main image from similar images
+    const filteredSimilarImages = item.similarImages.filter(uri => uri !== item.uri)
+    
+    return (
+      <View style={styles.rowContainer}>
+        <Image source={{ uri: item.uri }} style={styles.mainImage} />
+        <View style={styles.contentContainer}>
+          <Text 
+            text={`${filteredSimilarImages.length} similar images found`} 
+            size="xs" 
+            style={styles.similarText}
+          />
+          <FlatList
+            horizontal
+            data={filteredSimilarImages}
+            keyExtractor={(_, index) => index.toString()}
+            showsHorizontalScrollIndicator={false}
+            style={styles.similarImagesContainer}
+            renderItem={({ item: similarUri }) => (
+              <Image 
+                source={{ uri: similarUri }} 
+                style={styles.similarImage} 
+              />
+            )}
+          />
+        </View>
       </View>
-    </View>
-  )
+    )
+  }
 
   return (
     <Screen style={styles.root}>

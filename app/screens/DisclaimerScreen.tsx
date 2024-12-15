@@ -8,6 +8,7 @@ import PhotoLoader from "app/utils/PhotoLoader"
 import { useNavigation } from "@react-navigation/native"
 import { useStores } from "app/models"
 import { checkPermission } from "app/utils/ImageDeleteService"
+import APIClient from "app/utils/APIClient"
 
 interface DisclaimerScreenProps extends AppStackScreenProps<"Disclaimer"> {}
 
@@ -20,31 +21,61 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
     authenticationStore: { generateUniqueId, setDisclaimerAccepted },
   } = useStores()
 
+  const { authenticationStore } = useStores();
+
   const {
     photoStore,
+    preprocessingStore,
   } = useStores()
 
   useEffect(() => {
     generateUniqueId()
   }, [])
 
+  useEffect(() => {    
+    const setupUserId = async () => {
+      try {
+        generateUniqueId();
+        const deviceId = authenticationStore.getDeviceId;
+        if (deviceId) {
+          APIClient.getInstance().setUserId(deviceId);
+        } else {
+          console.error('Failed to generate device ID');
+        }
+      } catch (error) {
+        console.error('Error setting up user ID:', error);
+      }
+    };
+    
+    setupUserId();
+  }, []);
+
   const handlePhotoLoading = async () => {
     setLoading(true)
     try {
-      // setDisclaimerAccepted()
-
       checkPermission()
+      setDisclaimerAccepted()
       
-      await PhotoLoader.initialize((progressValue) => {
+      // Start photo loading in background
+      photoStore.setPhotoURIs([]) // Clear any existing URIs
+      preprocessingStore.setIsPreprocessing(true)
+      
+      // Start background processing
+      PhotoLoader.initialize((progressValue) => {
         console.log("Progress:", progressValue)
-        setProgress(progressValue)
+        preprocessingStore.setProgress(progressValue)
+      }).then(() => {
+        photoStore.setPhotoURIs(PhotoLoader.getPhotoURIs())
+        preprocessingStore.setIsPreprocessing(false)
+      }).catch((error) => {
+        console.error('Failed to initialize PhotoLoader:', error)
       })
-      
-      // Store the loaded URIs in PhotoStore
-      photoStore.setPhotoURIs(PhotoLoader.getPhotoURIs())
-      
-      // Navigate after photos are loaded
-      navigation.navigate("Swipe" as never)
+
+      // Navigate immediately without waiting
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Demo"  as never}],
+      })
     } catch (error) {
       console.error('Failed to initialize PhotoLoader:', error)
       Alert.alert(
@@ -69,12 +100,14 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
 
         {/* Content Section */}
         <View style={$contentContainer}>
-          <Text style={$paragraph} text="We value your privacy and want to be transparent about how we handle your data:" />
+          <Text style={$paragraph} text="Thanks for downloading our app! We value your privacy and want to be transparent about how we handle your data:" />
           
-          <Text style={$bulletPoint} text="• We do not save your data on our servers" />
+          <Text style={$bulletPoint} text="• No photos are saved on our servers" />
           <Text style={$bulletPoint} text="• On the first launch, your device processes your photos and sends some anonymous data to our server" />
           <Text style={$bulletPoint} text="• We use this data to give you accurate recommendations for photo deletion" />
-          <Text style={$bulletPoint} text="• We never share your personal information with third parties" />
+          <Text style={$bulletPoint} text="• We will never share your personal information with third parties" />
+          <Text style={$bulletPoint} text="• We are committed to protecting your privacy and data" />
+
           
           <Text style={$paragraph} text="By continuing to use this app, you agree to our data handling practices as described in our Privacy Policy." />
         </View>
@@ -82,7 +115,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
         {/* Button Section */}
         <View style={$buttonContainer}>
           <Button
-            text="Sounds Good!"
+            text="Grant permissions"
             style={[$button, loading && $buttonDisabled]}
             textStyle={$buttonText}
             pressedStyle={$buttonPressed}

@@ -6,8 +6,17 @@ import JSZip from 'jszip';
  * A utility class for processing and zipping images efficiently.
  */
 class ImageProcessor {
-  // Maximum number of concurrent image processing tasks
+  private static instance: ImageProcessor;
   private readonly MAX_CONCURRENT = 4;
+
+  private constructor() {}
+
+  public static getInstance(): ImageProcessor {
+    if (!ImageProcessor.instance) {
+      ImageProcessor.instance = new ImageProcessor();
+    }
+    return ImageProcessor.instance;
+  }
 
   /**
    * Preprocesses a single image by resizing and compressing.
@@ -31,7 +40,10 @@ class ImageProcessor {
    * @param imageUris - An array of image URIs to process and zip.
    * @returns An object containing the URI and size of the created zip file.
    */
-  async createImageZip(imageUris: string[]): Promise<{ uri: string; size: number }> {
+  async createImageZip(
+    imageUris: string[], 
+    onProgress?: (progress: number) => void
+  ): Promise<{ uri: string; size: number }> {
     const zip = new JSZip();
     const total = imageUris.length;
     const manifest: Record<string, string> = {};
@@ -47,6 +59,11 @@ class ImageProcessor {
       const promises = batch.map(async (uri, index) => {
         const currentIndex = batchIndex * this.MAX_CONCURRENT + index;
         const processedFilename = `image_${currentIndex}.jpg`;
+        
+        // Calculate and report progress
+        const progress = currentIndex / total;
+        onProgress?.(progress);
+        
         console.log(`Processing image ${currentIndex + 1}/${total}`);
         try {
           const preprocessedUri = await this.preprocessImage(uri);
@@ -54,11 +71,7 @@ class ImageProcessor {
             encoding: FileSystem.EncodingType.Base64,
           });
           zip.file(processedFilename, imageData, { base64: true });
-
-          // Add to manifest
           manifest[processedFilename] = uri;
-
-          // Clean up preprocessed image
           await FileSystem.deleteAsync(preprocessedUri, { idempotent: true });
         } catch (error) {
           console.log(`Error processing image ${currentIndex + 1}:`, error);
@@ -110,4 +123,4 @@ class ImageProcessor {
   }
 }
 
-export default new ImageProcessor();
+export default ImageProcessor;
