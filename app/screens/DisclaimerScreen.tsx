@@ -8,6 +8,7 @@ import PhotoLoader from "app/utils/PhotoLoader"
 import { useNavigation } from "@react-navigation/native"
 import { useStores } from "app/models"
 import { checkPermission } from "app/utils/ImageDeleteService"
+import APIClient from "app/utils/APIClient"
 
 interface DisclaimerScreenProps extends AppStackScreenProps<"Disclaimer"> {}
 
@@ -20,6 +21,8 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
     authenticationStore: { generateUniqueId, setDisclaimerAccepted },
   } = useStores()
 
+  const { authenticationStore } = useStores();
+
   const {
     photoStore,
     preprocessingStore,
@@ -28,6 +31,24 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
   useEffect(() => {
     generateUniqueId()
   }, [])
+
+  useEffect(() => {    
+    const setupUserId = async () => {
+      try {
+        generateUniqueId();
+        const deviceId = authenticationStore.getDeviceId;
+        if (deviceId) {
+          APIClient.getInstance().setUserId(deviceId);
+        } else {
+          console.error('Failed to generate device ID');
+        }
+      } catch (error) {
+        console.error('Error setting up user ID:', error);
+      }
+    };
+    
+    setupUserId();
+  }, []);
 
   const handlePhotoLoading = async () => {
     setLoading(true)

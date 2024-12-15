@@ -5,7 +5,7 @@
 - ~~The progress bar / header needs to be updatable [handled in another future UI branch]~~
 - ~~Create the profile screen~~
 - Implement left-right swipe on the swipescreen
-- Need to make the HWID generation robust
+- ~~Need to make the HWID generation robust~~
 - User cannot navigate backwards to the disclaimer screen
 - ~~Encountered two children with the same key. Keys should be unique so that components maintain their identity across updates (ERROR)~~
     - This error happens because the server returns a similar image that is the same as the one the user is trying to delete.

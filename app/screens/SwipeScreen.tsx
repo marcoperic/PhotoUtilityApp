@@ -20,7 +20,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const [animation] = useState(new Animated.Value(0))
   const [imageAnimation] = useState(new Animated.Value(1))
   const [overlay, setOverlay] = useState<"keep" | "remove" | null>(null)
-  const apiClient = APIClient
+  const apiClient = APIClient.getInstance();
   useEffect(() => {
     // This effect will run whenever preprocessingStore.isPreprocessing changes
     if (!preprocessingStore.isPreprocessing && photoStore.photoURIs.length > 0) {
