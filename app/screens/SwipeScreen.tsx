@@ -96,7 +96,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
 
 const handleRemove = useCallback(async () => {
   const currentUri = photoStore.photoURIs[currentIndex]
-  
+
   // Start the UI animations immediately
   setOverlay("remove")
   animateImageFadeOut(200)
@@ -138,7 +138,6 @@ const handleRemove = useCallback(async () => {
   // Continue with UI animation immediately
   animateOverlay()
 }, [currentIndex, photoStore, apiClient, animateOverlay])
-
 
   if (preprocessingStore.isPreprocessing) {
     return (
