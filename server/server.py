@@ -123,46 +123,60 @@ async def check_index(user_id: str):
 @app.post("/imgUpload")
 async def upload_images(file: UploadFile = File(...), user_id: str = Form(...)):
     try:
-        # Create user directory if it doesn't exist
         user_dir = get_user_dir(user_id)
         
-        # Create a temporary directory to extract files
         with tempfile.TemporaryDirectory() as temp_dir:
             zip_path = os.path.join(temp_dir, file.filename)
             
-            # Save uploaded file
+            # Save uploaded file temporarily
             with open(zip_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
             
-            # Extract zip file
-            image_paths = []
+            # Process zip file
+            image_paths = []  # Will store original Android URIs
             features_list = []
+            manifest = {}
             
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                # Extract all files
+                # First, read the manifest to get original URIs
+                if 'manifest.json' in zip_ref.namelist():
+                    with zip_ref.open('manifest.json') as manifest_file:
+                        manifest = json.load(manifest_file)
+                else:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"message": "No manifest.json found in zip file"}
+                    )
+                
+                files = [f for f in zip_ref.namelist() if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                total_files = len(files)
+                print(f"\nFound {total_files} images to process")
+                
                 zip_ref.extractall(temp_dir)
                 
                 # Process each image
-                for filename in zip_ref.namelist():
-                    if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-                        image_path = os.path.join(temp_dir, filename)
-                        try:
-                            # Open and process image
-                            image = Image.open(image_path).convert('RGB')
-                            features = extract_features(image)
-                            
-                            # Save image to user directory with UUID
-                            new_filename = f"{uuid.uuid4()}{os.path.splitext(filename)[1]}"
-                            new_path = user_dir / new_filename
-                            shutil.copy2(image_path, new_path)
-                            
-                            # Store paths and features
-                            image_paths.append(str(new_filename))
+                for idx, filename in enumerate(files, 1):
+                    if filename == 'manifest.json':
+                        continue
+                        
+                    image_path = os.path.join(temp_dir, filename)
+                    try:
+                        print(f"Processing image {idx}/{total_files}: {filename}")
+                        
+                        # Process image and extract features
+                        image = Image.open(image_path).convert('RGB')
+                        features = extract_features(image)
+                        
+                        # Get the original Android URI from manifest
+                        original_uri = manifest.get(filename)
+                        if original_uri:
+                            image_paths.append(original_uri)
                             features_list.append(features)
-                            
-                        except Exception as e:
-                            print(f"Error processing {filename}: {str(e)}")
-                            continue
+                            print(f"✓ Extracted features for image {idx}/{total_files}")
+                        
+                    except Exception as e:
+                        print(f"✗ Error processing image {idx}/{total_files}: {str(e)}")
+                        continue
             
             if not features_list:
                 return JSONResponse(
@@ -177,7 +191,7 @@ async def upload_images(file: UploadFile = File(...), user_id: str = Form(...)):
             dimension = features_array.shape[1]
             faiss_index = create_faiss_index(dimension, features_array)
             
-            # Save the index and paths
+            # Save only the index and original URIs
             index_path = user_dir / "faiss.index"
             paths_file = user_dir / "image_paths.json"
             
@@ -233,7 +247,9 @@ async def search_similar_images(file: UploadFile = File(...), k: int = 5, user_i
             
             similar_uris = [image_paths[idx] for idx in indices[0][valid_indices]]
             distances = distances[0][valid_indices].tolist()
-            
+            print(f"Found {len(similar_uris)} similar images")
+            print(f"Similar images: {similar_uris}")
+
             return {
                 "similar_images": similar_uris[:k], 
                 "distances": distances[:k],

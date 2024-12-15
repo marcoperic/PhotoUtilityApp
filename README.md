@@ -16,6 +16,7 @@
 - Server should not return duplicate similar images
 - Server should only take URI as input for search, not entire image
 - Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)
+- User ID not set after reloading app (BUG)
 
 # Design Notes
 
