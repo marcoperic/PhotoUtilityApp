@@ -54,7 +54,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
     setLoading(true)
     try {
       checkPermission()
-      // setDisclaimerAccepted() TODO: Uncomment this
+      setDisclaimerAccepted()
       
       // Start photo loading in background
       photoStore.setPhotoURIs([]) // Clear any existing URIs
@@ -72,7 +72,10 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
       })
 
       // Navigate immediately without waiting
-      navigation.navigate("Swipe" as never)
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Demo"  as never}],
+      })
     } catch (error) {
       console.error('Failed to initialize PhotoLoader:', error)
       Alert.alert(
