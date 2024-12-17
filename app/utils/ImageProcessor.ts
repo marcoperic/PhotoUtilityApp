@@ -7,7 +7,7 @@ import JSZip from 'jszip';
  */
 class ImageProcessor {
   private static instance: ImageProcessor;
-  private readonly MAX_CONCURRENT = 4;
+  private readonly MAX_CONCURRENT = 16;
 
   private constructor() {}
 
@@ -28,7 +28,7 @@ class ImageProcessor {
     const { uri: resizedUri } = await ImageManipulator.manipulateAsync(
       uri,
       [{ resize: { width: 224, height: 224 } }],
-      { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
+      { compress: 0.95, format: ImageManipulator.SaveFormat.JPEG }
     );
     console.log(`Finished preprocessing: ${uri}`);
     return resizedUri;

@@ -15,8 +15,14 @@
 - ~~Server needs to delete temp files~~
 - ~~Server should not return duplicate similar images~~
 - ~~Server should only take URI as input for search, not entire image~~
-- Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)
-- User ID not set after reloading app (BUG)
+- ~~Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)~~
+  - 224p, 0.9: 33.29 seconds
+  - no resize, 0.9: FAIL
+  - 92p, 0.9: 29.42 seconds
+  - 224p, no compress: 35 seconds
+  - 512p, 0.9: 42s
+- ~~User ID not set after reloading app (BUG)~~
+- Handle case when user does not grant permissions
 
 # Design Notes
 
