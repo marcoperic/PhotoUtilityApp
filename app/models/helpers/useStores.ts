@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { RootStore, RootStoreModel } from "../RootStore"
 import { setupRootStore } from "./setupRootStore"
+import APIClient from "../../utils/APIClient"
 
 /**
  * Create the initial (empty) global RootStore instance here.
@@ -61,20 +62,24 @@ export const useInitialRootStore = (callback?: () => void | Promise<void>) => {
       const { unsubscribe } = await setupRootStore(rootStore)
       _unsubscribe = unsubscribe
 
-      // reactotron integration with the MST root store (DEV only)
+      // After rehydration, ensure the device ID is set
+      if (!rootStore.authenticationStore.deviceId) {
+        rootStore.authenticationStore.generateUniqueId()
+      } else {
+        // Ensure APIClient has the restored user ID
+        APIClient.getInstance().setUserId(rootStore.authenticationStore.deviceId)
+      }
+
       if (__DEV__) {
         console.tron.trackMstNode(rootStore)
       }
 
-      // let the app know we've finished rehydrating
       setRehydrated(true)
 
-      // invoke the callback, if provided
       if (callback) callback()
     })()
 
     return () => {
-      // cleanup
       if (_unsubscribe !== undefined) _unsubscribe()
     }
   }, [])
