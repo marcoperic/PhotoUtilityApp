@@ -1,19 +1,18 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 import { withSetPropAction } from "./helpers/withSetPropAction"
 
-interface DeletedPhoto {
-  uri: string;
-  similarImages: string[];
-}
+export const DeletedPhotoModel = types.model("DeletedPhoto", {
+  uri: types.string,
+  similarImages: types.array(types.string),
+  isSelected: types.optional(types.boolean, true), // Default to selected
+  timestamp: types.optional(types.number, () => Date.now())
+})
 
 export const PhotoStoreModel = types
   .model("PhotoStore")
   .props({
     photoURIs: types.array(types.string),
-    deletedPhotos: types.array(types.model({
-      uri: types.string,
-      similarImages: types.array(types.string)
-    })),
+    deletedPhotos: types.array(DeletedPhotoModel),
     indexStatus: types.optional(
       types.model({
         exists: types.optional(types.boolean, false),
@@ -28,15 +27,25 @@ export const PhotoStoreModel = types
       store.photoURIs.replace(uris)
     },
     addDeletedPhoto(uri: string, similarImages: string[] = []) {
+      // Remove duplicates from similarImages
+      const uniqueSimilarImages = [...new Set(similarImages)]
       store.photoURIs.replace(store.photoURIs.filter(photoUri => photoUri !== uri))
-      store.deletedPhotos.push({ uri, similarImages })
+      store.deletedPhotos.push({ 
+        uri, 
+        similarImages: uniqueSimilarImages,
+        isSelected: true,
+        timestamp: Date.now()
+      })
     },
-    removeDeletedPhoto(uri: string) {
-      store.deletedPhotos.replace(store.deletedPhotos.filter(photo => photo.uri !== uri))
-      store.photoURIs.push(uri)
+    togglePhotoSelection(uri: string) {
+      const photo = store.deletedPhotos.find(p => p.uri === uri)
+      if (photo) {
+        photo.isSelected = !photo.isSelected
+      }
     },
-    clearDeletedPhotos() {
-      store.deletedPhotos.clear()
+    deleteAllSelected() {
+      const photosToKeep = store.deletedPhotos.filter(photo => !photo.isSelected)
+      store.deletedPhotos.replace(photosToKeep)
     },
     setIndexStatus(exists: boolean) {
       store.indexStatus.exists = exists
@@ -44,14 +53,13 @@ export const PhotoStoreModel = types
     }
   }))
   .views((store) => ({
-    get allPhotoURIs() {
-      return store.photoURIs.slice()
+    get sortedDeletedPhotos() {
+      return store.deletedPhotos.slice().sort((a, b) => 
+        b.similarImages.length - a.similarImages.length
+      )
     },
-    get allDeletedPhotoURIs() {
-      return store.deletedPhotos.slice().map(photo => photo.uri)
-    },
-    isPhotoDeleted(uri: string) {
-      return store.deletedPhotos.some(photo => photo.uri === uri)
+    get selectedCount() {
+      return store.deletedPhotos.filter(p => p.isSelected).length
     }
   }))
 
