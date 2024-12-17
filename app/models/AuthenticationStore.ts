@@ -1,5 +1,6 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 import uuid from 'react-native-uuid';
+import APIClient from "../utils/APIClient"
 
 export const AuthenticationStoreModel = types
   .model("AuthenticationStore")
@@ -18,9 +19,17 @@ export const AuthenticationStoreModel = types
         console.log("Generating device ID")
         store.deviceId = uuid.v4().toString()
       }
+      // Set the user ID in APIClient whenever it's generated or restored
+      APIClient.getInstance().setUserId(store.deviceId)
     },
     setDisclaimerAccepted() {
       store.isDisclaimerAccepted = true
+    },
+    afterCreate() {
+      // If we have a deviceId after rehydration, set it in APIClient
+      if (store.deviceId) {
+        APIClient.getInstance().setUserId(store.deviceId)
+      }
     }
   }))
 

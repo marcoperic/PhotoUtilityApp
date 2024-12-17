@@ -6,16 +6,23 @@
 - ~~Create the profile screen~~
 - Implement left-right swipe on the swipescreen
 - ~~Need to make the HWID generation robust~~
-- User cannot navigate backwards to the disclaimer screen
+- ~~User cannot navigate backwards to the disclaimer screen~~
 - ~~Encountered two children with the same key. Keys should be unique so that components maintain their identity across updates (ERROR)~~
     - ~~This error happens because the server returns a similar image that is the same as the one the user is trying to delete.~~
 - ~~APIClient is not singleton~~
 - Need to test server performance with multiple devices simultaneously making requests
 - ~~Thread-safe server implementation~~
-- Server needs to delete temp files
-- Server should not return duplicate similar images
-- Server should only take URI as input for search, not entire image
-- Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)
+- ~~Server needs to delete temp files~~
+- ~~Server should not return duplicate similar images~~
+- ~~Server should only take URI as input for search, not entire image~~
+- ~~Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)~~
+  - 224p, 0.9: 33.29 seconds
+  - no resize, 0.9: FAIL
+  - 92p, 0.9: 29.42 seconds
+  - 224p, no compress: 35 seconds
+  - 512p, 0.9: 42s
+- ~~User ID not set after reloading app (BUG)~~
+- Handle case when user does not grant permissions
 
 # Design Notes
 
