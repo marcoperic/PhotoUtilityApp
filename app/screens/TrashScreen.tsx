@@ -31,6 +31,7 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
   const handleDeleteAll = async () => {
     try {
       // Here you would typically show a confirmation dialog
+      // TODO: implement deletion
       photoStore.deleteAllSelected()
     } catch (error) {
       console.error('Error deleting photos:', error)
