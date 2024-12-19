@@ -1,12 +1,13 @@
 import React, { FC, useState } from "react"
 import { observer } from "mobx-react-lite"
-import { FlatList, Image, StyleSheet, View, ViewStyle, TouchableOpacity, ImageStyle } from "react-native"
+import { FlatList, Image, StyleSheet, View, TouchableOpacity, Alert, ActivityIndicator } from "react-native"
 import { Screen, Text, Button } from "app/components"
 import { useStores } from "app/models"
 import { colors, spacing } from "app/theme"
 import { AppStackScreenProps } from "app/navigators"
 import { ImagePreviewModal } from "app/components/ImagePreviewModal"
 import { MaterialCommunityIcons } from "@expo/vector-icons"
+import ImageDeleteService from "app/utils/ImageDeleteService"
 
 interface TrashScreenProps extends AppStackScreenProps<"Trash"> {}
 
@@ -15,6 +16,7 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
   const [modalVisible, setModalVisible] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<{ uri: string; similarImages: string[] }>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(-1)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handlePhotoPress = (photo: { uri: string; similarImages: string[] }) => {
     setSelectedPhoto(photo)
@@ -29,12 +31,55 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
   }
 
   const handleDeleteAll = async () => {
+    const photosToDelete = photoStore.deletedPhotos.filter(photo => photo.isSelected)
+
+    if (photosToDelete.length === 0) {
+      Alert.alert("No Selection", "Please select at least one photo to delete.")
+      return
+    }
+
+    Alert.alert(
+      "Confirm Deletion",
+      `Are you sure you want to delete ${photosToDelete.length} photos and their similar images?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => performDeletion(photosToDelete) }
+      ]
+    )
+  }
+
+  const performDeletion = async (photos: typeof photoStore.deletedPhotos) => {
+    setIsDeleting(true)
+
     try {
-      // Here you would typically show a confirmation dialog
-      // TODO: implement deletion
+      // Gather all URIs to delete, including similar images
+      const allUris = photos.reduce((acc, photo) => {
+        acc.push(photo.uri, ...photo.similarImages)
+        return acc
+      }, [] as string[])
+
+      // Deduplicate URIs
+      const uniqueUris = Array.from(new Set(allUris))
+
+      // Delete each URI
+      for (const uri of uniqueUris) {
+        try {
+          await ImageDeleteService.deleteImage(uri)
+        } catch (error) {
+          console.error(`Error deleting image ${uri}:`, error)
+          Alert.alert("Deletion Error", `Failed to delete some images: ${error.message}`)
+        }
+      }
+
+      // After successful deletion, update the store
       photoStore.deleteAllSelected()
+
+      Alert.alert("Success", "Selected photos and their similar images have been deleted.")
     } catch (error) {
-      console.error('Error deleting photos:', error)
+      console.error("Error during deletion:", error)
+      Alert.alert("Error", "An unexpected error occurred during deletion.")
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -48,7 +93,6 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
         <TouchableOpacity onPress={() => handlePhotoPress(item)}>
           <Image source={{ uri: item.uri }} style={styles.mainImage} />
           
-          {/* Similar Images Preview Circles */}
           {filteredSimilarImages.length > 0 && (
             <View style={styles.previewCirclesContainer}>
               {filteredSimilarImages.slice(0, maxPreviewImages).map((similarUri, index) => (
@@ -104,12 +148,18 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
       <View style={styles.header}>
         <Text text="Trash" preset="heading" />
         {photoStore.selectedCount > 0 && (
-          <Button
-            text={`Delete All (${photoStore.selectedCount})`}
-            style={styles.deleteButton}
-            preset="reversed"
-            onPress={handleDeleteAll}
-          />
+          <>
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={colors.error} />
+            ) : (
+              <Button
+                text={`Delete All (${photoStore.selectedCount})`}
+                style={styles.deleteButton}
+                preset="reversed"
+                onPress={handleDeleteAll}
+              />
+            )}
+          </>
         )}
       </View>
 
@@ -147,7 +197,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
-  } as ViewStyle,
+  },
   
   header: {
     flexDirection: "row",
@@ -155,17 +205,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.separator,
-  } as ViewStyle,
-
+    borderColor: colors.palette.neutral300,
+  },
+  
   deleteButton: {
     backgroundColor: colors.error,
     paddingHorizontal: spacing.md,
-  } as ViewStyle,
-
+  },
+  
   listContentContainer: {
     padding: spacing.xs,
-  } as ViewStyle,
+    paddingBottom: spacing.xxl * 2,
+  },
 
   photoCard: {
     flex: 1,
@@ -173,35 +224,35 @@ const styles = StyleSheet.create({
     backgroundColor: colors.palette.neutral200,
     borderRadius: 12,
     overflow: "hidden",
-  } as ViewStyle,
-
+  },
+  
   mainImage: {
     width: "100%",
     aspectRatio: 1,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
-  } as ImageStyle,
-
+  },
+  
   previewCirclesContainer: {
     position: "absolute",
     bottom: spacing.sm,
     right: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
-  } as ViewStyle,
-
+  },
+  
   previewCircleButton: {
     marginLeft: -spacing.xs, // Overlap circles slightly
-  } as ViewStyle,
-
+  },
+  
   previewCircle: {
     width: 28,
     height: 28,
     borderRadius: 14,
     borderWidth: 2,
     borderColor: colors.background,
-  } as ImageStyle,
-
+  },
+  
   additionalCountContainer: {
     width: 28,
     height: 28,
@@ -212,35 +263,35 @@ const styles = StyleSheet.create({
     marginLeft: -spacing.xs,
     borderWidth: 2,
     borderColor: colors.background,
-  } as ViewStyle,
-
+  },
+  
   additionalCountText: {
     color: colors.palette.neutral100,
-  } as ViewStyle,
-
+  },
+  
   infoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: spacing.xs,
-  } as ViewStyle,
-
+  },
+  
   similarText: {
     color: colors.textDim,
-  } as ViewStyle,
-
+  },
+  
   checkbox: {
     padding: spacing.xs,
-  } as ViewStyle,
-
+  },
+  
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  } as ViewStyle,
-
+  },
+  
   emptyText: {
     color: colors.textDim,
     marginTop: spacing.sm,
-  } as ViewStyle,
+  },
 })
