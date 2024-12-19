@@ -23,6 +23,9 @@
   - 512p, 0.9: 42s
 - ~~User ID not set after reloading app (BUG)~~
 - Handle case when user does not grant permissions
+- out of memory error when zip file gets too large or too many photos?
+  -  ERROR  Error during image preprocessing and uploading: [Error: Call to function 'ExponentFileSystem.writeAsStringAsync' has been rejected.
+→   Caused by: java.lang.OutOfMemoryError: Failed to allocate a 48477640 byte allocation with 11328096 free bytes and 10MB until OOM, target footprint 201326592, growth limit 201326592]
 
 # Design Notes
 
