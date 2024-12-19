@@ -29,7 +29,13 @@ export const PhotoStoreModel = types
     addDeletedPhoto(uri: string, similarImages: string[] = []) {
       // Remove duplicates from similarImages
       const uniqueSimilarImages = [...new Set(similarImages)]
-      store.photoURIs.replace(store.photoURIs.filter(photoUri => photoUri !== uri))
+      // Remove main URI and similar URIs from photoURIs
+      store.photoURIs.replace(
+        store.photoURIs.filter(
+          (photoUri) => photoUri !== uri && !uniqueSimilarImages.includes(photoUri)
+        )
+      )
+      // Add to deletedPhotos
       store.deletedPhotos.push({ 
         uri, 
         similarImages: uniqueSimilarImages,
@@ -44,6 +50,16 @@ export const PhotoStoreModel = types
       }
     },
     deleteAllSelected() {
+      const photosToDelete = store.deletedPhotos.filter(photo => photo.isSelected)
+      photosToDelete.forEach(photo => {
+        // Remove main URI and similar URIs from photoURIs
+        store.photoURIs.replace(
+          store.photoURIs.filter(
+            (photoUri) => photoUri !== photo.uri && !photo.similarImages.includes(photoUri)
+          )
+        )
+      })
+      // Remove selected photos from deletedPhotos
       const photosToKeep = store.deletedPhotos.filter(photo => !photo.isSelected)
       store.deletedPhotos.replace(photosToKeep)
     },

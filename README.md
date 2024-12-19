@@ -10,7 +10,9 @@
 - ~~Implement the deletion functionality. use the native module~~
 - Pagination?
 - Photos deleted tracker on the profile screen needs to be accurate
-- Images that have been deleted should not show up on the SwipeScreen
+- ~~Images that have been deleted should not show up on the SwipeScreen~~
+- Similar images should not be counting blanks / deleted images
+- Delete All button needs to include similar images that will be deleted
   
 # Design Notes
 

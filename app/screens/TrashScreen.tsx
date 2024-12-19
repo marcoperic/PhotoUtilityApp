@@ -65,9 +65,9 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
       for (const uri of uniqueUris) {
         try {
           await ImageDeleteService.deleteImage(uri)
+          console.log(`Deleted image: ${uri}`)
         } catch (error) {
           console.error(`Error deleting image ${uri}:`, error)
-          Alert.alert("Deletion Error", `Failed to delete some images: ${error.message}`)
         }
       }
 
