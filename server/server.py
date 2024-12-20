@@ -268,7 +268,7 @@ async def root():
     return {"message": "Image Upload Server is running"}
 
 def create_faiss_index(dimension, features):
-    nlist = 100  # number of clusters
+    nlist = 125  # number of clusters
     quantizer = faiss.IndexFlatL2(dimension)
     index = faiss.IndexIVFFlat(quantizer, dimension, nlist, faiss.METRIC_L2)
     index.train(features)  # Train on the data
