@@ -1,5 +1,5 @@
 import * as FileSystem from 'expo-file-system';
-import * as ImageManipulator from 'expo-image-manipulator';
+import ImageResizer from 'react-native-image-resizer';
 import JSZip from 'jszip';
 
 /**
@@ -23,15 +23,20 @@ class ImageProcessor {
    * @param uri - The URI of the image.
    * @returns The URI of the preprocessed image.
    */
+
   async preprocessImage(uri: string): Promise<string> {
     console.log(`Preprocessing image: ${uri}`);
-    const { uri: resizedUri } = await ImageManipulator.manipulateAsync(
+    const response = await ImageResizer.createResizedImage(
       uri,
-      [{ resize: { width: 224, height: 224 } }],
-      { compress: 0.95, format: ImageManipulator.SaveFormat.JPEG }
+      224,
+      224,
+      'JPEG',
+      95,
+      0, // rotation
+      undefined // outputPath (null = temp directory)
     );
     console.log(`Finished preprocessing: ${uri}`);
-    return resizedUri;
+    return response.uri;
   }
 
   /**
