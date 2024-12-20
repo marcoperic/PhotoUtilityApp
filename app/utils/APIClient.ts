@@ -7,7 +7,7 @@ class APIClient {
   private _userId: string | null;
 
   private constructor() {
-    this.baseUrl = 'http://172.16.116.18:8000';
+    this.baseUrl = 'http://photofaiss.mperic-dev.com';
     this._userId = null;
   }
 

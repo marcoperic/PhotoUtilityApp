@@ -83,6 +83,15 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
     }
   }
 
+  const getTotalImagesToDelete = () => {
+    const selectedPhotos = photoStore.deletedPhotos.filter(photo => photo.isSelected)
+    const totalCount = selectedPhotos.reduce((acc, photo) => {
+      // Count main photo + similar images
+      return acc + 1 + photo.similarImages.length
+    }, 0)
+    return totalCount
+  }
+
   const renderItem = ({ item }: { item: { uri: string; similarImages: string[]; isSelected: boolean } }) => {
     // Filter out duplicates and the main image from similar images
     const filteredSimilarImages = [...new Set(item.similarImages)].filter(uri => uri !== item.uri)
@@ -153,7 +162,7 @@ export const TrashScreen: FC<TrashScreenProps> = observer(function TrashScreen()
               <ActivityIndicator size="small" color={colors.error} />
             ) : (
               <Button
-                text={`Delete All (${photoStore.selectedCount})`}
+                text={`Delete All (${Number(photoStore.selectedCount + getTotalImagesToDelete() - photoStore.selectedCount)})`}
                 style={styles.deleteButton}
                 preset="reversed"
                 onPress={handleDeleteAll}
