@@ -8,7 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { AntDesign } from '@expo/vector-icons'
 import { useStores } from "../models/helpers/useStores"
 import APIClient from "../utils/APIClient"
-import { deleteImage } from "../utils/ImageDeleteService"
+import ImageDeleteService from "../utils/ImageDeleteService"
 
 interface SwipeScreenProps extends AppStackScreenProps<"Swipe"> {}
 
@@ -21,6 +21,7 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
   const [imageAnimation] = useState(new Animated.Value(1))
   const [overlay, setOverlay] = useState<"keep" | "remove" | null>(null)
   const apiClient = APIClient.getInstance();
+
   useEffect(() => {
     // This effect will run whenever preprocessingStore.isPreprocessing changes
     if (!preprocessingStore.isPreprocessing && photoStore.photoURIs.length > 0) {
@@ -75,69 +76,60 @@ export const SwipeScreen: FC<SwipeScreenProps> = observer(function SwipeScreen()
     animateOverlay()
   }, [animateOverlay])
 
-//   const handleRemove = useCallback(async () => {
-//     const currentUri = photoStore.photoURIs[currentIndex];
-//     // console.log('Current URI type:', typeof currentUri);
-//     console.log('Current URI value:', currentUri);
+  const handleRemove = useCallback(async () => {
+    const currentUri = photoStore.photoURIs[currentIndex]
+
+    // Start the UI animations immediately
+    setOverlay("remove")
+    animateImageFadeOut(200)
     
-//     try {
-//         await deleteImage(currentUri);
-//         console.log('Image deleted successfully');
-//         // Continue with your success handling...
-//     } catch (e) {
-//         console.error('Deletion error:', e);
-//         Alert.alert(
-//             'Error',
-//             'Failed to delete image: ' + e.message,
-//             [{ text: 'OK' }]
-//         );
-//     }
-// }, [currentIndex, photoStore]);
-
-const handleRemove = useCallback(async () => {
-  const currentUri = photoStore.photoURIs[currentIndex]
-
-  // Start the UI animations immediately
-  setOverlay("remove")
-  animateImageFadeOut(200)
-  
-  // Process the deletion asynchronously
-  const processDelete = async () => {
-    try {
-      // Check if we need to verify the index
-      const now = Date.now()
-      const INDEX_CHECK_INTERVAL = 1000 * 60 * 60 // 1 hour
-      
-      if (now - photoStore.indexStatus.lastChecked > INDEX_CHECK_INTERVAL) {
-        const { exists } = await apiClient.checkExistingIndex()
-        photoStore.setIndexStatus(exists)
-      }
-      
-      let similarImages: string[] = []
-      if (photoStore.indexStatus.exists) {
-        try {
-          const { similar_images } = await apiClient.searchSimilarImages(currentUri)
-          similarImages = similar_images
-        } catch (error) {
-          console.error("Error finding similar images:", error)
+    // Process the deletion asynchronously
+    const processDelete = async () => {
+      try {
+        // Check if we need to verify the index
+        const now = Date.now()
+        const INDEX_CHECK_INTERVAL = 1000 * 60 * 60 // 1 hour
+        
+        if (now - photoStore.indexStatus.lastChecked > INDEX_CHECK_INTERVAL) {
+          const { exists } = await apiClient.checkExistingIndex()
+          photoStore.setIndexStatus(exists)
         }
+        
+        let similarImages: string[] = []
+        if (photoStore.indexStatus.exists) {
+          try {
+            const { similar_images } = await apiClient.searchSimilarImages(currentUri)
+            similarImages = similar_images
+          } catch (error) {
+            console.error("Error finding similar images:", error)
+          }
+        }
+        
+        photoStore.addDeletedPhoto(currentUri, similarImages)
+        console.log("Marked photo for deletion:", currentUri)
+        
+      } catch (error) {
+        console.error("Error processing deletion:", error)
+        photoStore.addDeletedPhoto(currentUri, [])
       }
-      
-      photoStore.addDeletedPhoto(currentUri, similarImages)
-      console.log("Marked photo for deletion:", currentUri)
-      
-    } catch (error) {
-      console.error("Error processing deletion:", error)
-      photoStore.addDeletedPhoto(currentUri, [])
     }
-  }
-  
-  // Process deletion in the background
-  processDelete()
-  
-  // Continue with UI animation immediately
-  animateOverlay()
-}, [currentIndex, photoStore, apiClient, animateOverlay])
+    
+    // Process deletion in the background
+    processDelete()
+    
+    // Continue with UI animation immediately
+    animateOverlay()
+  }, [currentIndex, photoStore, apiClient, animateOverlay])
+
+  // Observe changes in photoURIs to reset currentIndex if needed
+  useEffect(() => {
+    if (currentIndex >= photoStore.photoURIs.length && photoStore.photoURIs.length > 0) {
+      setCurrentIndex(0)
+      setDisplayPhoto({ uri: photoStore.photoURIs[0] })
+    } else if (photoStore.photoURIs.length === 0) {
+      setDisplayPhoto(null)
+    }
+  }, [photoStore.photoURIs, currentIndex])
 
   if (preprocessingStore.isPreprocessing) {
     return (
@@ -306,12 +298,6 @@ const styles = StyleSheet.create({
   noPhotosText: {
     fontSize: 18,
     color: colors.textDim,
-  },
-  cardStyle: {
-    width: '95%',
-    height: '75%',
-    borderRadius: 15,
-    marginVertical: 20,
   },
   preprocessingContainer: {
     flex: 1,
