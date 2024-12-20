@@ -7,7 +7,7 @@ class APIClient {
   private _userId: string | null;
 
   private constructor() {
-    this.baseUrl = 'http://10.5.1.254:8000';
+    this.baseUrl = 'http://172.16.116.18:8000';
     this._userId = null;
   }
 
