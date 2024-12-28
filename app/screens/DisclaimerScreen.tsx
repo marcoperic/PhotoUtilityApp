@@ -54,7 +54,7 @@ export const DisclaimerScreen: FC<DisclaimerScreenProps> = observer(function Dis
     setLoading(true)
     try {
       checkPermission()
-      setDisclaimerAccepted()
+      // setDisclaimerAccepted()
       
       // Start photo loading in background
       photoStore.setPhotoURIs([]) // Clear any existing URIs
