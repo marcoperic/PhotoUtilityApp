@@ -4,17 +4,8 @@
 - ~~The progress bar / header needs to be updatable [handled in another future UI branch]~~
 - ~~Create the profile screen~~
 - Implement left-right swipe on the swipescreen
-- ~~Need to make the HWID generation robust~~
-- ~~User cannot navigate backwards to the disclaimer screen~~
-- ~~Encountered two children with the same key. Keys should be unique so that components maintain their identity across updates (ERROR)~~
-    - ~~This error happens because the server returns a similar image that is the same as the one the user is trying to delete.~~
 - ~~APIClient is not singleton~~
 - Need to test server performance with multiple devices simultaneously making requests
-- ~~Thread-safe server implementation~~
-- ~~Server needs to delete temp files~~
-- ~~Server should not return duplicate similar images~~
-- ~~Server should only take URI as input for search, not entire image~~
-- ~~Tweak preprocessing step on mobile (512x512 instead of 224x224, 0.8 compression)~~
   - 224p, 0.9: 33.29 seconds
   - no resize, 0.9: FAIL
   - 92p, 0.9: 29.42 seconds
@@ -25,6 +16,13 @@
 - out of memory error when zip file gets too large or too many photos?
   -  ERROR  Error during image preprocessing and uploading: [Error: Call to function 'ExponentFileSystem.writeAsStringAsync' has been rejected.
 →   Caused by: java.lang.OutOfMemoryError: Failed to allocate a 48477640 byte allocation with 11328096 free bytes and 10MB until OOM, target footprint 201326592, growth limit 201326592]
+
+- ImageProcessor needs to efficiently handle HEIC.
+  - Currently, there is a decrease in CPU usage when HEIC images are processed.
+  - The profiler is showing that there are no memory issues. However, HEIC image processing needs to be accelerated.
+  
+- Image processing needs to occur in the background, when the application is closed. Send a notification to the user when the process is complete.
+
 
 # Design Notes
 
