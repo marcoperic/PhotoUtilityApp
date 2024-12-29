@@ -96,7 +96,8 @@ class PhotoLoader {
         first: fetchCount,
       });
 
-      this.photoURIs = [...this.photoURIs, ...assets.map(asset => asset.uri)];
+      // this.photoURIs = [...this.photoURIs, ...assets.map(asset => asset.uri)];
+      this.photoURIs.push(...assets.map(asset => asset.uri));
       this.loadedPhotos += assets.length;
       this.totalPhotos =
         this.MAX_IMAGES === -1
