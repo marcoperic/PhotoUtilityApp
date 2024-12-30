@@ -20,6 +20,7 @@
 - ImageProcessor needs to efficiently handle HEIC.
   - Currently, there is a decrease in CPU usage when HEIC images are processed.
   - The profiler is showing that there are no memory issues. However, HEIC image processing needs to be accelerated.
+- consider using expo resizer, or simply only resizing and not running any compression
   
 - Image processing needs to occur in the background, when the application is closed. Send a notification to the user when the process is complete.
 
