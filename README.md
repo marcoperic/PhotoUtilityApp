@@ -17,12 +17,15 @@
   -  ERROR  Error during image preprocessing and uploading: [Error: Call to function 'ExponentFileSystem.writeAsStringAsync' has been rejected.
 →   Caused by: java.lang.OutOfMemoryError: Failed to allocate a 48477640 byte allocation with 11328096 free bytes and 10MB until OOM, target footprint 201326592, growth limit 201326592]
 
-- ImageProcessor needs to efficiently handle HEIC.
-  - Currently, there is a decrease in CPU usage when HEIC images are processed.
-  - The profiler is showing that there are no memory issues. However, HEIC image processing needs to be accelerated.
-- consider using expo resizer, or simply only resizing and not running any compression
+- ~~ImageProcessor needs to efficiently handle HEIC.~~
+  - ~~Currently, there is a decrease in CPU usage when HEIC images are processed.~~
+  - ~~The profiler is showing that there are no memory issues. However, HEIC image processing needs to be accelerated.~~
+- ~~consider using expo resizer, or simply only resizing and not running any compression~~
   
 - Image processing needs to occur in the background, when the application is closed. Send a notification to the user when the process is complete.
+- Implement batched uploads and append to the index until final image is processed. Consider uploading HEIC images without any compression.
+  - Package up all of the non-heic photos in small bundles, and then anything that is HEIC will be zipped in small archives and uploaded.
+  - Have another pointer go through the photos and just upload them uncompressed while the other pointer compresses and uploads them. They can meet in the middle.
 
 
 # Design Notes
