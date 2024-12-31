@@ -1,6 +1,8 @@
 import * as FileSystem from 'expo-file-system';
 import ImageResizer from 'react-native-image-resizer';
 import JSZip from 'jszip';
+import { NativeModules } from 'react-native';
+const { HeicDecoder } = NativeModules;
 
 /**
  * A utility class for processing and zipping images efficiently.
@@ -18,25 +20,43 @@ class ImageProcessor {
     return ImageProcessor.instance;
   }
 
+  async decodeHeic(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      HeicDecoder.decodeHeic(filePath, (base64String: string) => {
+        resolve(base64String);
+      }, (error: any) => {
+        reject(error);
+      });
+    });
+  }
+
   /**
    * Preprocesses a single image by resizing and compressing.
    * @param uri - The URI of the image.
    * @returns The URI of the preprocessed image.
    */
-
   async preprocessImage(uri: string): Promise<string> {
     console.log(`Preprocessing image: ${uri}`);
-    const response = await ImageResizer.createResizedImage(
-      uri,
-      224,
-      224,
-      'JPEG',
-      95,
-      0, // rotation
-      undefined // outputPath (null = temp directory)
-    );
-    console.log(`Finished preprocessing: ${uri}`);
-    return response.uri;
+    if (uri.endsWith('.heic') || uri.endsWith('.heif')) {
+      console.log(`Decoding HEIC file: ${uri}`);
+      const base64Data = await this.decodeHeic(uri);
+      const tempFileUri = FileSystem.documentDirectory + 'temp.jpg';
+      // await FileSystem.writeAsStringAsync(tempFileUri, base64Data, {
+      //   encoding: FileSystem.EncodingType.Base64,
+      // });
+      return tempFileUri;
+    } else {
+      const response = await ImageResizer.createResizedImage(
+        uri,
+        224,
+        224,
+        'JPEG',
+        95,
+        0
+      );
+      console.log(`Finished preprocessing: ${uri}`);
+      return response.uri;
+    }
   }
 
   /**
